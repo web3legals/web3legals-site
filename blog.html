@@ -37,6 +37,7 @@
 
 <section class="section" style="padding-top:40px">
   <div class="container">
+
     <div class="blog-filter">
       <button class="filter-btn active" data-filter="all">All Articles</button>
       <button class="filter-btn" data-filter="token">Token Law</button>
@@ -46,8 +47,16 @@
       <button class="filter-btn" data-filter="defi">DeFi & NFT</button>
     </div>
 
-    <div class="grid-3" id="blogGrid">
-      <!-- CMS articles loaded dynamically -->
+    <!-- CMS ARTICLES — loaded automatically from blog-loader.js -->
+    <div class="grid-3" id="cmsArticles" style="margin-bottom:40px">
+      <div style="grid-column:1/-1;text-align:center;padding:40px 0">
+        <div style="width:32px;height:32px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+        <p style="font-size:0.875rem">Loading articles...</p>
+      </div>
+    </div>
+
+    <!-- STATIC ARTICLES — always shown -->
+    <div class="grid-3" id="staticArticles">
       <div class="blog-card fade-up" data-category="token">
         <div class="blog-card-image">🪙</div>
         <div class="blog-card-body">
@@ -129,17 +138,6 @@
           <a href="blog/token-vesting-agreements-web3.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-      
-      <div class="blog-card fade-up" data-category="compliance" id="indiaArticle">
-        <div class="blog-card-image">🇮🇳</div>
-        <div class="blog-card-body">
-          <div class="blog-card-meta"><span class="badge badge-white">Compliance</span><span>12 min read</span></div>
-          <h3><a href="blog-post.html?post=india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know">India's Crypto Legal Framework in 2026: What Every Web3 Founder Must Know</a></h3>
-          <p>From PMLA amendments to SEBI oversight — the complete legal picture every Web3 founder building in or for India must understand.</p>
-          <a href="blog-post.html?post=india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know" class="blog-read-more">Read article <span>→</span></a>
-        </div>
-      </div>
-      <div id="cmsArticles"></div>
     </div>
 
     <div class="cta-section fade-up" style="margin-top:80px">
@@ -151,8 +149,13 @@
         <button class="btn btn-gold">Subscribe →</button>
       </div>
     </div>
+
   </div>
 </section>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 
 <footer class="footer">
   <div class="container">
@@ -167,5 +170,6 @@
 </footer>
 <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
 <script src="js/main.js"></script>
+<script src="js/blog-loader.js"></script>
 </body>
 </html>

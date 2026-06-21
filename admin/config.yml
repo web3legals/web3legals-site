@@ -7,21 +7,28 @@ backend:
   app_id: Ov23livfK4HcwXP3hGCs
 
 site_url: https://web3legals.com
-media_folder: "images/uploads"
-public_folder: "/images/uploads"
+media_folder: images/uploads
+public_folder: /images/uploads
 
 collections:
-  - name: "blog"
-    label: "Blog Articles"
-    folder: "blog"
+  - name: blog
+    label: Blog Articles
+    folder: blog
     create: true
     slug: "{{slug}}"
-  extension: "md"
-    format: "markdown"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Date", name: "date", widget: "datetime" }
-      - { label: "Category", name: "category", widget: "select", options: ["token", "dao", "compliance", "startup", "defi"] }
-      - { label: "Read Time", name: "readtime", widget: "number", default: 8 }
-      - { label: "Excerpt", name: "excerpt", widget: "text" }
-      - { label: "Body", name: "body", widget: "markdown" }
+      - label: Title
+        name: title
+        widget: string
+      - label: Date
+        name: date
+        widget: datetime
+      - label: Category
+        name: category
+        widget: string
+      - label: Excerpt
+        name: excerpt
+        widget: text
+      - label: Body
+        name: body
+        widget: markdown

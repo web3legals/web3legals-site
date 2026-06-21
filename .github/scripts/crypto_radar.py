@@ -74,27 +74,21 @@ def fetch_news():
     return articles, published
 
 def generate_article(news_item):
-    prompt = f"""You are Rahul Pareek, Founder of Web3Legals and a Double Gold Medallist in LLM (International & Business Law) from National Law University, India.
+    prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
 
-A major crypto legal development has just been reported:
-
+A crypto legal development has been reported:
 HEADLINE: {news_item['title']}
 SOURCE: {news_item['source']}
 SUMMARY: {news_item['summary']}
-URL: {news_item['url']}
 
-Write a legal commentary article (800-1200 words) for Web3 founders covering:
-1. What happened and why it matters legally
-2. Implications for Web3 founders, DAOs, token projects
-3. Practical action steps founders must take
-4. Relevant regulations (SEC, MiCA, SEBI, FATF, PMLA)
-5. Conclusion with CTA to book a free call at Web3Legals
+Write a legal commentary article for Web3 founders (800-1200 words).
+Category must be exactly one of: compliance, token, dao, startup, defi
 
-Use Markdown: ## headings, **bold** key terms, bullet points.
-Category must be one of: compliance, token, dao, startup, defi
+Return a JSON object with keys: title, category, readtime, excerpt, body
+The body must be a single-line string with newlines as \\n
 
-Respond ONLY with valid JSON, no code blocks:
-{{"title": "Article title", "category": "compliance", "readtime": 8, "excerpt": "One sentence summary", "body": "Full markdown article"}}"""
+Example:
+{{"title": "Title", "category": "compliance", "readtime": 8, "excerpt": "Summary.", "body": "## Intro\\n\\nText here..."}}"""
 
     try:
         response = requests.post(
@@ -102,16 +96,28 @@ Respond ONLY with valid JSON, no code blocks:
             headers={"Content-Type": "application/json"},
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4000}
+                "generationConfig": {
+                    "temperature": 0.5,
+                    "maxOutputTokens": 4000,
+                    "responseMimeType": "application/json"
+                }
             },
-            timeout=60
+            timeout=90
         )
         response.raise_for_status()
         result = response.json()
         text = result['candidates'][0]['content']['parts'][0]['text'].strip()
-        text = re.sub(r'^```[a-z]*\n?', '', text)
-        text = re.sub(r'\n?```$', '', text).strip()
-        return json.loads(text)
+        text = re.sub(r'^```[a-zA-Z]*\s*', '', text)
+        text = re.sub(r'\s*```$', '', text).strip()
+        start = text.find('{')
+        end = text.rfind('}') + 1
+        if start != -1 and end > start:
+            text = text[start:end]
+        data = json.loads(text)
+        valid_cats = ['compliance', 'token', 'dao', 'startup', 'defi']
+        if data.get('category') not in valid_cats:
+            data['category'] = 'compliance'
+        return data
     except Exception as e:
         print(f"Error generating article: {e}")
         return None
@@ -123,7 +129,7 @@ def save_article(article_data, news_url):
     excerpt = article_data['excerpt'].replace('"', "'")
     category = article_data['category']
     readtime = article_data.get('readtime', 8)
-    body = article_data['body']
+    body = article_data['body'].replace('\\n', '\n')
 
     markdown = f"""---
 title: "{title}"
@@ -145,7 +151,6 @@ auto_generated: true
 
 *Disclaimer: For informational purposes only — not legal advice.*
 """
-
     filename = f"blog/{slug}.md"
     os.makedirs("blog", exist_ok=True)
     with open(filename, 'w', encoding='utf-8') as f:
@@ -175,19 +180,17 @@ def main():
     if not GEMINI_API_KEY:
         print("❌ GEMINI_API_KEY not set")
         return
-
     articles, published = fetch_news()
     print(f"📰 Found {len(articles)} new relevant articles")
-
     if not articles:
         print("✅ No new developments found")
         return
-
     processed = 0
     for news_item in articles[:2]:
         print(f"\n📝 Processing: {news_item['title']}")
         article_data = generate_article(news_item)
         if not article_data:
+            print("⚠️ Skipping")
             continue
         slug = save_article(article_data, news_item['url'])
         update_blog_loader(slug)
@@ -196,8 +199,7 @@ def main():
         processed += 1
         print(f"🚀 Published: {article_data['title']}")
         if processed < 2:
-            time.sleep(30)
-
+            time.sleep(10)
     print(f"\n✅ Done! Published {processed} articles.")
 
 if __name__ == "__main__":

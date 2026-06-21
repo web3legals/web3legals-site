@@ -1,1 +1,39 @@
-run: pip install requests feedparser python-slugify
+name: Global Crypto Legal Radar — Auto Publisher
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  publish-article:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests feedparser python-slugify
+
+      - name: Run Crypto Legal Radar
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python .github/scripts/crypto_radar.py
+
+      - name: Commit and push new articles
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Web3Legals Auto Publisher"
+          git add blog/*.md js/blog-loader.js .github/scripts/published_urls.json
+          git diff --staged --quiet || git commit -m "Auto-publish: Global Crypto Legal Radar update"
+          git push

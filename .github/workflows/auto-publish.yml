@@ -1,1 +1,1 @@
-
+run: pip install requests feedparser python-slugify

@@ -73,23 +73,7 @@ def fetch_news():
             continue
     return articles, published
 
-def generate_article(news_item):
-    prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
-
-A crypto legal development has been reported:
-HEADLINE: {news_item['title']}
-SOURCE: {news_item['source']}
-SUMMARY: {news_item['summary']}
-
-Write a legal commentary article for Web3 founders (800-1200 words).
-Category must be exactly one of: compliance, token, dao, startup, defi
-
-Return a JSON object with keys: title, category, readtime, excerpt, body
-The body must be a single-line string with newlines as \\n
-
-Example:
-{{"title": "Title", "category": "compliance", "readtime": 8, "excerpt": "Summary.", "body": "## Intro\\n\\nText here..."}}"""
-
+def call_gemini(prompt):
     try:
         response = requests.post(
             f"{GEMINI_URL}?key={GEMINI_API_KEY}",
@@ -98,29 +82,78 @@ Example:
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
                     "temperature": 0.5,
-                    "maxOutputTokens": 4000,
-                    "responseMimeType": "application/json"
+                    "maxOutputTokens": 3000,
                 }
             },
             timeout=90
         )
         response.raise_for_status()
         result = response.json()
-        text = result['candidates'][0]['content']['parts'][0]['text'].strip()
-        text = re.sub(r'^```[a-zA-Z]*\s*', '', text)
-        text = re.sub(r'\s*```$', '', text).strip()
-        start = text.find('{')
-        end = text.rfind('}') + 1
-        if start != -1 and end > start:
-            text = text[start:end]
-        data = json.loads(text)
-        valid_cats = ['compliance', 'token', 'dao', 'startup', 'defi']
-        if data.get('category') not in valid_cats:
-            data['category'] = 'compliance'
-        return data
+        return result['candidates'][0]['content']['parts'][0]['text'].strip()
     except Exception as e:
-        print(f"Error generating article: {e}")
+        print(f"Gemini API error: {e}")
         return None
+
+def generate_article(news_item):
+    meta_prompt = f"""Based on this crypto legal news:
+HEADLINE: {news_item['title']}
+SUMMARY: {news_item['summary']}
+
+Reply with exactly 3 lines, nothing else:
+LINE1: [A compelling article title about the legal implications]
+LINE2: [category - must be exactly one of: compliance, token, dao, startup, defi]
+LINE3: [One sentence excerpt describing the article]"""
+
+    meta_response = call_gemini(meta_prompt)
+    if not meta_response:
+        return None
+
+    lines = meta_response.strip().split('\n')
+    title = news_item['title']
+    category = 'compliance'
+    excerpt = news_item['summary'][:150]
+
+    for line in lines:
+        line = line.strip()
+        if line.startswith('LINE1:'):
+            title = line.replace('LINE1:', '').strip().strip('"[]')
+        elif line.startswith('LINE2:'):
+            cat = line.replace('LINE2:', '').strip().lower().strip('"[]')
+            if cat in ['compliance', 'token', 'dao', 'startup', 'defi']:
+                category = cat
+        elif line.startswith('LINE3:'):
+            excerpt = line.replace('LINE3:', '').strip().strip('"[]')
+
+    time.sleep(5)
+
+    body_prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
+
+Write a legal commentary article (800-1000 words) about this crypto legal development:
+HEADLINE: {news_item['title']}
+SOURCE: {news_item['source']}
+SUMMARY: {news_item['summary']}
+
+Cover:
+1. What happened and legal significance
+2. Implications for Web3 founders, DAOs, token projects
+3. Practical action steps founders must take now
+4. Relevant regulations (SEC, MiCA, SEBI, FATF, PMLA as relevant)
+5. Conclusion with CTA to book free 30-min Legal Clarity Call at web3legals.com
+
+Format with ## headings, **bold** key terms, bullet points.
+Write the article directly — no title, no preamble, just the article body."""
+
+    body_response = call_gemini(body_prompt)
+    if not body_response:
+        return None
+
+    return {
+        'title': title,
+        'category': category,
+        'readtime': 8,
+        'excerpt': excerpt,
+        'body': body_response
+    }
 
 def save_article(article_data, news_url):
     title = article_data['title']
@@ -129,7 +162,7 @@ def save_article(article_data, news_url):
     excerpt = article_data['excerpt'].replace('"', "'")
     category = article_data['category']
     readtime = article_data.get('readtime', 8)
-    body = article_data['body'].replace('\\n', '\n')
+    body = article_data['body']
 
     markdown = f"""---
 title: "{title}"
@@ -199,7 +232,7 @@ def main():
         processed += 1
         print(f"🚀 Published: {article_data['title']}")
         if processed < 2:
-            time.sleep(10)
+            time.sleep(15)
     print(f"\n✅ Done! Published {processed} articles.")
 
 if __name__ == "__main__":

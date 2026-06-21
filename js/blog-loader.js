@@ -1,6 +1,8 @@
 // Web3Legals Blog Loader — prepends CMS articles to the main static grid
 
 const CMS_ARTICLES = [
+  "whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline",
+  "mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi",
   "india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know",
   "orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders",
   "oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now",

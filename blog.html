@@ -31,26 +31,12 @@
   <div class="container" style="position:relative;z-index:2">
     <div class="eyebrow">Knowledge Hub</div>
     <h1>Web3 Legal Insights</h1>
-    <p>Practical legal intelligence for blockchain founders, DAO contributors, and crypto builders. No jargon — just clarity.</p>
+    <p>Practical legal intelligence for blockchain founders, DAO contributors, and crypto builders.</p>
   </div>
 </section>
 
 <section class="section" style="padding-top:40px">
   <div class="container">
-
-    <!-- FEATURED -->
-    <div class="blog-featured fade-up" style="margin-bottom:60px">
-      <div class="blog-featured-img">⚖</div>
-      <div class="blog-featured-body">
-        <div class="badge badge-gold" style="margin-bottom:16px">Featured Article</div>
-        <div style="font-size:0.8rem;color:var(--gray);margin-bottom:12px">June 2026 · 12 min read · Token Law</div>
-        <h2 style="font-size:1.6rem;margin-bottom:16px;line-height:1.3">Navigating the Regulatory Labyrinth: 5 Legal Mistakes That Destroy Web3 Projects</h2>
-        <p style="margin-bottom:24px">Five critical legal failures — from token misclassification to DAO liability traps — with institutional-grade solutions for each. The white paper Web3 founders need before they launch.</p>
-        <a href="contact.html" class="btn btn-gold">Read the Full White Paper →</a>
-      </div>
-    </div>
-
-    <!-- FILTERS -->
     <div class="blog-filter">
       <button class="filter-btn active" data-filter="all">All Articles</button>
       <button class="filter-btn" data-filter="token">Token Law</button>
@@ -60,9 +46,8 @@
       <button class="filter-btn" data-filter="defi">DeFi & NFT</button>
     </div>
 
-    <!-- BLOG GRID -->
-    <div class="grid-3">
-
+    <div class="grid-3" id="blogGrid">
+      <!-- CMS articles loaded dynamically -->
       <div class="blog-card fade-up" data-category="token">
         <div class="blog-card-image">🪙</div>
         <div class="blog-card-body">
@@ -72,100 +57,100 @@
           <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="dao">
         <div class="blog-card-image">🏛</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-teal">DAO Law</span><span>10 min read</span></div>
           <h3><a href="blog/ooki-dao-cftc-explained.html">Ooki DAO vs. CFTC: What Every DAO Member Must Know</a></h3>
           <p>The landmark case that proved decentralization is not a legal shield. What happened, why it matters, and how to protect your DAO.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <a href="blog/ooki-dao-cftc-explained.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="compliance">
         <div class="blog-card-image">🛡</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-white">Compliance</span><span>7 min read</span></div>
           <h3><a href="blog/fatf-travel-rule-crypto-founders.html">FATF Travel Rule: A Plain-English Guide for Crypto Founders</a></h3>
           <p>The rule that's reshaping crypto compliance globally. What it is, who it applies to, and exactly what you need to do.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <a href="blog/fatf-travel-rule-crypto-founders.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="startup">
         <div class="blog-card-image">🚀</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-gold">Startup Law</span><span>9 min read</span></div>
           <h3><a href="blog/web3-startup-legal-checklist.html">Web3 Startup Legal Checklist: 10 Things Before You Launch</a></h3>
           <p>The complete pre-launch legal checklist for Web3 founders — from entity formation to token compliance to team agreements.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <a href="blog/web3-startup-legal-checklist.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="token">
         <div class="blog-card-image">⚖</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-gold">Token Law</span><span>11 min read</span></div>
-          <h3><a href="blog/mica-regulation-explained.html">MiCA Explained: What EU's Crypto Regulation Means for Your Project</a></h3>
+          <h3><a href="blog/mica-regulation-explained.html">MiCA Explained: What EU Crypto Regulation Means for Your Project</a></h3>
           <p>The Markets in Crypto-Assets Regulation is now in force. Here's what it covers, who it affects, and how to stay compliant.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <a href="blog/mica-regulation-explained.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="defi">
         <div class="blog-card-image">🖼</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-teal">NFT Law</span><span>6 min read</span></div>
           <h3><a href="blog/nft-ip-rights-ownership.html">NFT IP Rights: Who Actually Owns What You Mint?</a></h3>
-          <p>NFT ownership and IP ownership are not the same thing. Most creators and buyers don't understand the difference — here's the truth.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <p>NFT ownership and IP ownership are not the same thing. Most creators and buyers don't understand the difference.</p>
+          <a href="blog/nft-ip-rights-ownership.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="dao">
         <div class="blog-card-image">🗳</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-teal">DAO Law</span><span>8 min read</span></div>
           <h3><a href="blog/wyoming-dao-vs-cayman-foundation.html">Wyoming DAO LLC vs. Cayman Foundation: Which Is Right for Your DAO?</a></h3>
-          <p>A practical comparison of the two most popular DAO legal wrappers — with guidance on which fits your project's structure and goals.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <p>A practical comparison of the two most popular DAO legal wrappers — with guidance on which fits your project.</p>
+          <a href="blog/wyoming-dao-vs-cayman-foundation.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="compliance">
         <div class="blog-card-image">🔍</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-white">Compliance</span><span>9 min read</span></div>
           <h3><a href="blog/tornado-cash-sanctions-defi.html">Tornado Cash Sanctions: Lessons for Every DeFi Protocol</a></h3>
-          <p>OFAC sanctioned a smart contract. What this means for every decentralized protocol and how to assess your own sanctions exposure.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <p>OFAC sanctioned a smart contract. What this means for every decentralized protocol and your sanctions exposure.</p>
+          <a href="blog/tornado-cash-sanctions-defi.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
       <div class="blog-card fade-up" data-category="startup">
         <div class="blog-card-image">📋</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge badge-gold">Startup Law</span><span>7 min read</span></div>
           <h3><a href="blog/token-vesting-agreements-web3.html">Token Vesting Agreements: Why a Spreadsheet Is Not Enough</a></h3>
-          <p>Verbal vesting promises and spreadsheet allocations are unenforceable. Here's what a proper token vesting agreement must include.</p>
-          <a href="blog/howey-test-web3-founders.html" class="blog-read-more">Read article <span>→</span></a>
+          <p>Verbal vesting promises and spreadsheet allocations are legally unenforceable. Here's what a proper agreement must include.</p>
+          <a href="blog/token-vesting-agreements-web3.html" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>
-
+      
+      <div class="blog-card fade-up" data-category="compliance" id="indiaArticle">
+        <div class="blog-card-image">🇮🇳</div>
+        <div class="blog-card-body">
+          <div class="blog-card-meta"><span class="badge badge-white">Compliance</span><span>12 min read</span></div>
+          <h3><a href="blog-post.html?post=india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know">India's Crypto Legal Framework in 2026: What Every Web3 Founder Must Know</a></h3>
+          <p>From PMLA amendments to SEBI oversight — the complete legal picture every Web3 founder building in or for India must understand.</p>
+          <a href="blog-post.html?post=india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know" class="blog-read-more">Read article <span>→</span></a>
+        </div>
+      </div>
+      <div id="cmsArticles"></div>
     </div>
 
-    <!-- NEWSLETTER -->
     <div class="cta-section fade-up" style="margin-top:80px">
       <div class="eyebrow">Stay Informed</div>
       <h2>Web3 legal updates, monthly</h2>
-      <p>Regulatory changes, case law updates, and practical legal guides for Web3 builders — delivered to your inbox once a month. No spam.</p>
+      <p>Regulatory changes, case law updates, and practical legal guides — delivered once a month. No spam.</p>
       <div style="display:flex;gap:12px;justify-content:center;max-width:480px;margin:0 auto;flex-wrap:wrap">
         <input type="email" placeholder="your@email.com" style="flex:1;padding:14px 18px;border-radius:var(--radius);background:rgba(255,255,255,0.07);border:1px solid var(--border2);color:var(--white);font-size:0.95rem;font-family:inherit;outline:none;min-width:200px">
         <button class="btn btn-gold">Subscribe →</button>
       </div>
     </div>
-
   </div>
 </section>
 

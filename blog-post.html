@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Web3Legals</title>
+<meta name="description" content="Web3 legal insights by Rahul Pareek, Founder of Web3Legals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+.article-body { max-width: 740px; margin: 0 auto; }
+.article-body h1 { font-size: clamp(1.8rem,4vw,2.6rem); margin-bottom: 20px; color: var(--white); }
+.article-body h2 { font-size: 1.5rem; margin: 44px 0 14px; color: var(--white); padding-top: 8px; border-top: 1px solid var(--border2); }
+.article-body h3 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--gold); }
+.article-body p { font-size: 1.05rem; color: var(--gray); line-height: 1.85; margin-bottom: 18px; }
+.article-body ul, .article-body ol { padding-left: 24px; margin-bottom: 18px; }
+.article-body li { font-size: 1rem; color: var(--gray); line-height: 1.8; margin-bottom: 8px; }
+.article-body strong { color: var(--white); font-weight: 600; }
+.article-body em { color: var(--gray); font-style: italic; }
+.article-body hr { border: none; border-top: 1px solid var(--border2); margin: 36px 0; }
+.article-body blockquote { background: rgba(201,168,76,0.07); border-left: 3px solid var(--gold); padding: 16px 20px; margin: 28px 0; border-radius: 0; }
+.article-body blockquote p { margin: 0; font-size: 0.95rem; color: var(--gold-light, #E2C97E); }
+.article-body code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: var(--teal); }
+.article-body pre { background: rgba(255,255,255,0.05); border: 1px solid var(--border2); border-radius: var(--radius); padding: 20px; overflow-x: auto; margin-bottom: 20px; }
+.article-body a { color: var(--gold); text-decoration: underline; }
+.article-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--border2); }
+.article-meta span { font-size: 0.85rem; color: var(--gray); }
+.toc { background: var(--glass); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 24px 28px; margin-bottom: 44px; }
+.toc h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 14px; }
+.toc ul { list-style: none; padding: 0; margin: 0; }
+.toc li { font-size: 0.875rem; color: var(--gray); padding: 5px 0; border-bottom: 1px solid var(--border2); }
+.toc li:last-child { border: none; }
+.toc a { color: var(--gray); transition: color 0.2s; }
+.toc a:hover { color: var(--gold); text-decoration: none; }
+.article-cta { background: linear-gradient(135deg, rgba(201,168,76,0.06), rgba(29,158,117,0.04)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 48px 36px; text-align: center; margin-top: 64px; position: relative; overflow: hidden; }
+.article-cta::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 60%; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.loading { text-align: center; padding: 120px 0; }
+.loading-spinner { width: 40px; height: 40px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-state { text-align: center; padding: 120px 0; }
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li><li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li><li><a href="blog.html" class="active">Blog</a></li><li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-cta"><a href="contact.html" class="btn btn-gold">Book a Call</a></div>
+    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a>
+  <a href="blog.html">Blog</a><a href="contact.html">Contact</a>
+  <a href="contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
+</div>
+
+<section style="padding: 140px 0 80px;">
+  <div class="container">
+    <div class="article-body" id="articleContent">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading article...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand"><a href="index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a><p>Legal clarity for the decentralized world.</p><div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div></div>
+      <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="services.html">Token Advisory</a></li><li><a href="services.html">DAO Wrappers</a></li><li><a href="services.html">KYC/AML</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Rahul</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="contact.html">Book a Call</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Web3Legals. Founded by <a href="about.html">Rahul Pareek</a>.</span><span>Disclaimer: Informational only — not legal advice.</span></div>
+  </div>
+</footer>
+<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+<script src="js/main.js"></script>
+<script>
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('post');
+  const container = document.getElementById('articleContent');
+
+  if (!slug) {
+    window.location.href = 'blog.html';
+    return;
+  }
+
+  try {
+    const res = await fetch(`blog/${slug}.md`);
+    if (!res.ok) throw new Error('Not found');
+    const raw = await res.text();
+
+    // Parse frontmatter
+    const fm = {};
+    let body = raw;
+    if (raw.startsWith('---')) {
+      const end = raw.indexOf('---', 3);
+      if (end !== -1) {
+        const fmLines = raw.slice(3, end).trim().split('\n');
+        fmLines.forEach(line => {
+          const colon = line.indexOf(':');
+          if (colon > -1) {
+            const key = line.slice(0, colon).trim();
+            const val = line.slice(colon + 1).trim().replace(/^["']|["']$/g, '');
+            fm[key] = val;
+          }
+        });
+        body = raw.slice(end + 3).trim();
+      }
+    }
+
+    // Update page title
+    if (fm.title) document.title = `${fm.title} — Web3Legals`;
+    if (fm.excerpt) {
+      document.querySelector('meta[name="description"]').setAttribute('content', fm.excerpt);
+    }
+
+    // Badge color
+    const badgeMap = { token: 'badge-gold', dao: 'badge-teal', compliance: 'badge-white', startup: 'badge-gold', defi: 'badge-teal' };
+    const badgeClass = badgeMap[fm.category] || 'badge-white';
+    const categoryLabel = fm.category ? fm.category.charAt(0).toUpperCase() + fm.category.slice(1).replace('-', ' ') : 'Article';
+
+    // Build TOC from h2 headings
+    const h2matches = [...body.matchAll(/^## (.+)$/gm)];
+    let tocHTML = '';
+    if (h2matches.length > 2) {
+      tocHTML = `<div class="toc"><h4>Table of Contents</h4><ul>`;
+      h2matches.forEach((m, i) => {
+        const text = m[1].replace(/\*\*/g, '');
+        const id = `section-${i}`;
+        tocHTML += `<li><a href="#${id}">${text}</a></li>`;
+      });
+      tocHTML += `</ul></div>`;
+      // Add IDs to h2s in body
+      let idx = 0;
+      body = body.replace(/^## (.+)$/gm, (match, text) => {
+        return `<h2 id="section-${idx++}">${text}</h2>`;
+      });
+    }
+
+    // Convert markdown to HTML
+    const htmlBody = marked.parse(body);
+
+    // Render full article
+    container.innerHTML = `
+      <a href="blog.html" style="font-size:0.85rem;color:var(--gold);display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;text-decoration:none">← Back to Blog</a>
+      <div class="badge ${badgeClass}" style="margin-bottom:20px">${categoryLabel}</div>
+      <h1>${fm.title || 'Article'}</h1>
+      <div class="article-meta">
+        <span>By <a href="about.html" style="color:var(--gold);text-decoration:none">Rahul Pareek</a></span>
+        <span>·</span>
+        <span>${fm.date ? new Date(fm.date).toLocaleDateString('en-IN', {year:'numeric',month:'long'}) : 'June 2026'}</span>
+        <span>·</span>
+        <span>${fm.readtime || '8'} min read</span>
+      </div>
+      ${tocHTML}
+      <div>${htmlBody}</div>
+      <div class="article-cta">
+        <div class="eyebrow">Get Expert Advice</div>
+        <h2 style="font-size:1.6rem;margin-bottom:12px">Need legal clarity?</h2>
+        <p style="max-width:480px;margin:0 auto 28px">Book a free 30-minute Legal Clarity Call with Rahul Pareek, Founder of Web3Legals — no obligation.</p>
+        <a href="contact.html" class="btn btn-gold">Book a Free Call →</a>
+      </div>
+    `;
+
+    // Scroll animations
+    document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+
+  } catch(e) {
+    container.innerHTML = `
+      <div class="error-state">
+        <h2>Article not found</h2>
+        <p>This article may have been moved or deleted.</p>
+        <a href="blog.html" class="btn btn-gold" style="margin-top:20px">← Back to Blog</a>
+      </div>
+    `;
+  }
+})();
+</script>
+</body>
+</html>

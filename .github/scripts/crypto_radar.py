@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from slugify import slugify
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 RSS_FEEDS = [
     "https://cointelegraph.com/rss/tag/regulation",

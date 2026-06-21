@@ -13,7 +13,7 @@ In 2026, that ambiguity is largely over. India now has a functioning — if stil
 
 This is not a guide to avoiding regulation. It is a guide to building a sustainable, compliant Web3 business in the world's most important emerging crypto market.
 
----
+***
 
 ## 1. The Foundation: How India Regulates Crypto Assets
 
@@ -36,6 +36,7 @@ The most significant regulatory development was the March 2023 amendment bringin
 Since April 2022, India has imposed a flat **30% tax on profits from VDA transfers**, with no deductions allowed except the cost of acquisition. Additionally, a **1% TDS** applies on VDA transfers above ₹10,000 per year (₹50,000 for specified persons).
 
 For Web3 businesses, this creates operational challenges:
+
 - Token distributions, airdrops, and staking rewards may constitute taxable income
 - NFT sales are taxable as VDA transfers
 - Employee token compensation triggers tax obligations
@@ -57,7 +58,7 @@ India's long-anticipated comprehensive crypto legislation is expected to provide
 - Consumer protection obligations
 - Cross-border transaction rules
 
----
+***
 
 ## 2. FIU-IND Registration: What It Is and Who Needs It
 
@@ -82,7 +83,7 @@ Under the PMLA 2023 amendment, the following VDA business types must register wi
 
 Non-registration carries penalties and reputational risk, including potential banking relationship termination.
 
----
+***
 
 ## 3. Token Classification Under Indian Law
 
@@ -99,7 +100,7 @@ Tokens that meet the characteristics of securities under the SEBI Act — offeri
 **Category 3: Non-Fungible Tokens (NFTs)**
 Generally classified as VDAs for tax purposes, but the regulatory treatment of NFTs representing real-world assets or financial instruments is still evolving.
 
----
+***
 
 ## 4. Cross-Border Transactions and FEMA
 
@@ -113,7 +114,7 @@ Key points for Web3 founders:
 
 For most Web3 startups raising international capital, the practical solution is to incorporate a **holding entity outside India** (Singapore, UAE, or Cayman are most common) while maintaining the operational team in India.
 
----
+***
 
 ## 5. Practical Compliance Checklist for Indian Web3 Founders
 
@@ -133,7 +134,7 @@ For most Web3 startups raising international capital, the practical solution is 
 - Monitor SEBI guidance for any new obligations affecting your platform
 - Review compliance posture annually as the regulatory framework evolves
 
----
+***
 
 ## 6. The Banking Problem — And How to Navigate It
 
@@ -146,7 +147,7 @@ Practical strategies for Indian Web3 founders:
 - **Work with fintech-friendly banks** — some smaller private banks and payment banks are more open
 - **Use compliant crypto-to-fiat rails** — licensed payment aggregators that support VDA businesses
 
----
+***
 
 ## 7. Conclusion
 
@@ -154,8 +155,8 @@ India's crypto legal framework in 2026 is complex — but it is navigable. The f
 
 If you are building a Web3 project in or for India and need legal clarity on any of the issues covered in this guide, book a free 30-minute Legal Clarity Call with Web3Legals.
 
----
+***
 
-*Disclaimer: This article is for informational purposes only and does not constitute legal advice.*
+_Disclaimer: This article is for informational purposes only and does not constitute legal advice._
 
-*By Rahul Pareek — Founder, Web3Legals | Double Gold Medallist, LLM — National Law University*
+_By Rahul Pareek — Founder, Web3Legals | Double Gold Medallist, LLM — National Law University_

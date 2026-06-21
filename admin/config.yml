@@ -16,8 +16,8 @@ collections:
     folder: "blog"
     create: true
     slug: "{{slug}}"
-    extension: "html"
-    format: "frontmatter"
+  extension: "md"
+    format: "markdown"
     fields:
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Date", name: "date", widget: "datetime" }

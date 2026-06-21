@@ -1,0 +1,27 @@
+backend:
+  name: github
+  repo: web3legals/web3legals-site
+  branch: main
+  base_url: https://sveltia-cms-auth.pages.dev
+  auth_endpoint: /api/auth
+  app_id: Ov23livfK4HcwXP3hGCs
+
+site_url: https://web3legals.com
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "blog"
+    label: "Blog Articles"
+    folder: "blog"
+    create: true
+    slug: "{{slug}}"
+    extension: "html"
+    format: "frontmatter"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Category", name: "category", widget: "select", options: ["token", "dao", "compliance", "startup", "defi"] }
+      - { label: "Read Time", name: "readtime", widget: "number", default: 8 }
+      - { label: "Excerpt", name: "excerpt", widget: "text" }
+      - { label: "Body", name: "body", widget: "markdown" }

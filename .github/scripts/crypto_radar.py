@@ -73,23 +73,38 @@ def fetch_news():
             continue
     return articles, published
 
-def call_gemini(prompt):
-    try:
-        response = requests.post(
-            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.5, "maxOutputTokens": 3000}
-            },
-            timeout=90
-        )
-        response.raise_for_status()
-        result = response.json()
-        return result['candidates'][0]['content']['parts'][0]['text'].strip()
-    except Exception as e:
-        print(f"Gemini API error: {e}")
-        return None
+def call_gemini(prompt, retries=3):
+    for attempt in range(retries):
+        try:
+            response = requests.post(
+                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.5, "maxOutputTokens": 3000}
+                },
+                timeout=90
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result['candidates'][0]['content']['parts'][0]['text'].strip()
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response else 0
+            if status in [429, 503] and attempt < retries - 1:
+                wait = 30 * (attempt + 1)
+                print(f"Gemini busy ({status}) — waiting {wait}s then retrying... (attempt {attempt+1}/{retries})")
+                time.sleep(wait)
+                continue
+            print(f"Gemini API error: {e}")
+            return None
+        except Exception as e:
+            if attempt < retries - 1:
+                print(f"Error (attempt {attempt+1}/{retries}): {e} — retrying in 15s...")
+                time.sleep(15)
+                continue
+            print(f"Gemini API error: {e}")
+            return None
+    return None
 
 def generate_article(news_item):
     meta_prompt = f"""Based on this crypto legal news:
@@ -153,9 +168,7 @@ Write the article directly — no title, no preamble, just the article body."""
     }
 
 def generate_linkedin_draft(news_item, article_data):
-    """Generate LinkedIn post draft from article."""
     time.sleep(5)
-    
     prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
 
 A crypto legal article was just published on your blog:
@@ -194,18 +207,15 @@ Write ONLY the post. Nothing else."""
     }
 
 def save_linkedin_draft(draft):
-    """Append draft to linkedin-drafts.json."""
     drafts_file = 'linkedin-drafts.json'
     try:
         with open(drafts_file, 'r') as f:
             data = json.load(f)
     except:
         data = {'drafts': []}
-
     data['drafts'].insert(0, draft)
     data['drafts'] = data['drafts'][:50]
     data['updated_at'] = datetime.now(timezone.utc).isoformat()
-
     with open(drafts_file, 'w') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"✅ LinkedIn draft saved!")
@@ -279,28 +289,20 @@ def main():
     processed = 0
     for news_item in articles[:2]:
         print(f"\n📝 Processing: {news_item['title']}")
-        
-        # Generate blog article
         article_data = generate_article(news_item)
         if not article_data:
             print("⚠️ Skipping — could not generate article")
             continue
-
-        # Save blog article
         slug = save_article(article_data, news_item['url'])
         update_blog_loader(slug)
-
-        # Generate LinkedIn draft
         print(f"📱 Generating LinkedIn draft...")
         linkedin_draft = generate_linkedin_draft(news_item, article_data)
         if linkedin_draft:
             save_linkedin_draft(linkedin_draft)
-        
         published.add(news_item['url'])
         save_published(published)
         processed += 1
         print(f"🚀 Published: {article_data['title']}")
-        
         if processed < 2:
             time.sleep(15)
 

@@ -1,14 +1,12 @@
-// Web3Legals Blog Loader — prepends CMS articles to the main static grid
+// Web3Legals Blog Loader — auto-loads CMS articles with clean SEO URLs
 
 const CMS_ARTICLES = [
-  "censorship-or-compliance-amazon-s-openai-film-pullout-sparks-legal-debate",
-  "congressional-prediction-market-ban-legal-compliance-and-insider-trading-prevent",
-  "whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline",
-  "mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi",
   "india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know",
   "orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders",
   "oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now",
-  "india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses"
+  "india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses",
+  "mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi",
+  "whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline"
 ];
 
 const EMOJI_MAP = { compliance:"🛡", token:"🪙", dao:"🏛", startup:"🚀", defi:"🖼" };
@@ -33,15 +31,15 @@ async function fetchMeta(slug) {
         });
       }
     }
-    // Only return if has a real title and excerpt
-    if (!fm.title || fm.title.trim() === '' || fm.title === 'Article') return null;
+    if (!fm.title || fm.title.trim() === '') return null;
     return fm;
   } catch(e) { return null; }
 }
 
 function makeCard(a) {
   const cat = a.category || 'compliance';
-  const url = `/blog-post.html?post=${a.slug}`;
+  // Use clean SEO URL — points to static HTML page built by GitHub Action
+  const url = `/blog/${a.slug}`;
   const label = cat.charAt(0).toUpperCase() + cat.slice(1);
   const div = document.createElement('div');
   div.className = 'blog-card fade-up visible';
@@ -74,7 +72,6 @@ async function loadCMSArticles() {
     mainGrid.insertBefore(card, mainGrid.firstChild);
   });
 
-  // Hook filters
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const cat = btn.dataset.filter;

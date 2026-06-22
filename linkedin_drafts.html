@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Drafts — Web3Legals</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.draft-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;margin-bottom:20px;transition:var(--transition)}
+.draft-card:hover{border-color:var(--border)}
+.draft-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.draft-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.draft-topic{font-size:14px;font-weight:600;color:var(--white);margin-bottom:8px}
+.draft-body{font-size:13.5px;color:var(--gray);line-height:1.8;white-space:pre-wrap;background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:var(--radius);padding:16px;margin-bottom:16px;font-family:inherit}
+.copy-btn{background:var(--gold);color:var(--navy);border:none;padding:10px 20px;border-radius:var(--radius);font-size:0.875rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap}
+.copy-btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+.copy-btn.copied{background:var(--teal);color:var(--white)}
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+.status-new{background:rgba(29,158,117,0.15);color:var(--teal);border:1px solid rgba(29,158,117,0.3)}
+.status-used{background:rgba(255,255,255,0.06);color:var(--gray);border:1px solid var(--border2)}
+.mark-btn{background:none;border:1px solid var(--border2);color:var(--gray);padding:6px 14px;border-radius:var(--radius);font-size:0.8rem;cursor:pointer;transition:var(--transition)}
+.mark-btn:hover{border-color:var(--teal);color:var(--teal)}
+.empty-state{text-align:center;padding:80px 0;color:var(--gray)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+.stat-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:20px;text-align:center}
+.stat-num{font-size:2rem;font-weight:700;color:var(--gold)}
+.stat-label{font-size:0.8rem;color:var(--gray);margin-top:4px}
+.filter-row{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+.filter-btn2{padding:7px 18px;border-radius:99px;font-size:0.85rem;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--glass);color:var(--gray);transition:var(--transition)}
+.filter-btn2:hover,.filter-btn2.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.source-link{font-size:11px;color:var(--gray2);margin-top:8px}
+.source-link a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li><li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-cta"><a href="contact.html" class="btn btn-gold">Book a Call</a></div>
+    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a>
+  <a href="blog.html">Blog</a><a href="contact.html">Contact</a>
+</div>
+
+<section style="padding:120px 0 80px">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px">
+      <div>
+        <div class="eyebrow">Auto-Generated</div>
+        <h1 style="font-size:2rem;margin-bottom:8px">LinkedIn Drafts</h1>
+        <p style="margin:0">Ready-to-post drafts generated from your crypto legal radar. Copy → paste → post.</p>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:0.8rem;color:var(--gray)">Last updated</div>
+        <div style="font-size:0.9rem;color:var(--gold)" id="lastUpdated">Loading...</div>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="stat-num" id="totalDrafts">0</div><div class="stat-label">Total Drafts</div></div>
+      <div class="stat-card"><div class="stat-num" id="newDrafts">0</div><div class="stat-label">Ready to Post</div></div>
+      <div class="stat-card"><div class="stat-num" id="usedDrafts">0</div><div class="stat-label">Already Posted</div></div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn2 active" data-filter="all">All Drafts</button>
+      <button class="filter-btn2" data-filter="new">Ready to Post</button>
+      <button class="filter-btn2" data-filter="used">Already Posted</button>
+    </div>
+
+    <div id="draftsContainer">
+      <div class="empty-state">
+        <p style="font-size:1.5rem;margin-bottom:8px">⏳</p>
+        <p>Loading drafts...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom" style="padding-top:0;border:none">
+      <span>© 2026 Web3Legals — Private Page</span>
+      <span>Auto-generated by Global Crypto Legal Radar</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+const STORAGE_KEY = 'w3l_draft_status';
+
+function getStatuses() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function setStatus(id, status) {
+  const s = getStatuses();
+  s[id] = status;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+function formatDate(dateStr) {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  } catch { return dateStr; }
+}
+
+function renderDrafts(drafts, filter = 'all') {
+  const container = document.getElementById('draftsContainer');
+  const statuses = getStatuses();
+
+  const filtered = drafts.filter(d => {
+    const status = statuses[d.id] || 'new';
+    if (filter === 'new') return status === 'new';
+    if (filter === 'used') return status === 'used';
+    return true;
+  });
+
+  // Stats
+  const total = drafts.length;
+  const used = drafts.filter(d => (statuses[d.id] || 'new') === 'used').length;
+  document.getElementById('totalDrafts').textContent = total;
+  document.getElementById('newDrafts').textContent = total - used;
+  document.getElementById('usedDrafts').textContent = used;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><p style="font-size:1.5rem;margin-bottom:8px">✅</p><p>No drafts in this category yet.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((draft, i) => {
+    const status = statuses[draft.id] || 'new';
+    const isNew = status === 'new';
+    return `
+      <div class="draft-card" data-status="${status}" data-id="${draft.id}">
+        <div class="draft-header">
+          <div style="flex:1">
+            <div class="draft-meta">
+              <span class="status-badge ${isNew ? 'status-new' : 'status-used'}">${isNew ? '● Ready to Post' : '✓ Posted'}</span>
+              <span class="badge badge-white" style="font-size:11px">${draft.category || 'Compliance'}</span>
+            </div>
+            <div class="draft-topic">${draft.topic || 'LinkedIn Post'}</div>
+            <div class="source-link">Source: <a href="${draft.source_url || '#'}" target="_blank" rel="noopener">${draft.source_title || 'Crypto Legal News'}</a> · ${formatDate(draft.generated_at)}</div>
+          </div>
+          <button class="copy-btn" onclick="copyDraft('${draft.id}', this)">Copy Post</button>
+        </div>
+        <div class="draft-body" id="body-${draft.id}">${draft.post}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span style="font-size:11px;color:var(--gray)">${draft.word_count || ''} words · Best time: Tue/Wed/Thu 8-9 AM IST</span>
+          <button class="mark-btn" onclick="toggleStatus('${draft.id}', this)">${isNew ? '✓ Mark as Posted' : '↩ Mark as Unused'}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function copyDraft(id, btn) {
+  const body = document.getElementById('body-' + id);
+  if (!body) return;
+  navigator.clipboard.writeText(body.textContent).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Post'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+
+function toggleStatus(id, btn) {
+  const statuses = getStatuses();
+  const current = statuses[id] || 'new';
+  const next = current === 'new' ? 'used' : 'new';
+  setStatus(id, next);
+  loadDrafts();
+}
+
+let allDrafts = [];
+let currentFilter = 'all';
+
+async function loadDrafts() {
+  try {
+    const res = await fetch('/linkedin-drafts.json?t=' + Date.now());
+    if (!res.ok) throw new Error('Not found');
+    const data = await res.json();
+    allDrafts = data.drafts || [];
+    document.getElementById('lastUpdated').textContent = formatDate(data.updated_at || new Date().toISOString());
+    renderDrafts(allDrafts, currentFilter);
+  } catch(e) {
+    document.getElementById('draftsContainer').innerHTML = `
+      <div class="empty-state">
+        <p style="font-size:1.5rem;margin-bottom:8px">🔄</p>
+        <p>No drafts yet — they'll appear here automatically when the Crypto Legal Radar runs next.</p>
+        <p style="font-size:0.875rem;margin-top:8px">Runs every 6 hours automatically.</p>
+      </div>`;
+    document.getElementById('lastUpdated').textContent = 'No drafts yet';
+  }
+}
+
+document.querySelectorAll('.filter-btn2').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn2').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderDrafts(allDrafts, currentFilter);
+  });
+});
+
+loadDrafts();
+</script>
+</body>
+</html>

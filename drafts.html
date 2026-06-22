@@ -10,19 +10,21 @@
 <style>
 .draft-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;margin-bottom:20px;transition:var(--transition)}
 .draft-card:hover{border-color:var(--border)}
-.draft-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
-.draft-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.draft-topic{font-size:14px;font-weight:600;color:var(--white);margin-bottom:8px}
-.draft-body{font-size:13.5px;color:var(--gray);line-height:1.8;white-space:pre-wrap;background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:var(--radius);padding:16px;margin-bottom:16px;font-family:inherit}
-.copy-btn{background:var(--gold);color:var(--navy);border:none;padding:10px 20px;border-radius:var(--radius);font-size:0.875rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap}
-.copy-btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+.draft-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.draft-topic{font-size:14px;font-weight:600;color:var(--white);margin-bottom:6px}
+.draft-body{font-size:13.5px;color:var(--gray);line-height:1.85;background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.draft-body strong{color:var(--white);font-weight:600}
+.draft-body ul{padding-left:20px;margin:10px 0}
+.draft-body li{margin-bottom:6px}
+.draft-body p{margin-bottom:10px}
+.draft-body p:last-child{margin-bottom:0}
+.copy-btn{background:var(--gold);color:var(--navy);border:none;padding:10px 20px;border-radius:var(--radius);font-size:0.875rem;font-weight:600;cursor:pointer;transition:var(--transition)}
+.copy-btn:hover{background:#E2C97E;transform:translateY(-1px)}
 .copy-btn.copied{background:var(--teal);color:var(--white)}
-.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
-.status-new{background:rgba(29,158,117,0.15);color:var(--teal);border:1px solid rgba(29,158,117,0.3)}
-.status-used{background:rgba(255,255,255,0.06);color:var(--gray);border:1px solid var(--border2)}
+.status-new{background:rgba(29,158,117,0.15);color:var(--teal);border:1px solid rgba(29,158,117,0.3);display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+.status-used{background:rgba(255,255,255,0.06);color:var(--gray);border:1px solid var(--border2);display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
 .mark-btn{background:none;border:1px solid var(--border2);color:var(--gray);padding:6px 14px;border-radius:var(--radius);font-size:0.8rem;cursor:pointer;transition:var(--transition)}
 .mark-btn:hover{border-color:var(--teal);color:var(--teal)}
-.empty-state{text-align:center;padding:80px 0;color:var(--gray)}
 .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
 .stat-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:20px;text-align:center}
 .stat-num{font-size:2rem;font-weight:700;color:var(--gold)}
@@ -30,8 +32,15 @@
 .filter-row{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap}
 .filter-btn2{padding:7px 18px;border-radius:99px;font-size:0.85rem;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--glass);color:var(--gray);transition:var(--transition)}
 .filter-btn2:hover,.filter-btn2.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
-.source-link{font-size:11px;color:var(--gray2);margin-top:8px}
+.source-link{font-size:11px;color:var(--gray2);margin-top:6px}
 .source-link a{color:var(--gold);text-decoration:none}
+.draft-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.raw-toggle{font-size:11px;color:var(--gray);background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:4px 10px;cursor:pointer}
+.raw-toggle:hover{color:var(--gold);border-color:var(--gold)}
+.raw-text{display:none;font-size:12px;color:var(--gray);line-height:1.7;white-space:pre-wrap;background:rgba(0,0,0,0.2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px;margin-top:10px;font-family:monospace}
+.empty-state{text-align:center;padding:80px 0;color:var(--gray)}
+.hashtags{margin-top:10px}
+.hashtag{display:inline-block;font-size:11px;color:var(--teal);margin-right:4px}
 </style>
 </head>
 <body>
@@ -57,7 +66,7 @@
       <div>
         <div class="eyebrow">Auto-Generated</div>
         <h1 style="font-size:2rem;margin-bottom:8px">LinkedIn Drafts</h1>
-        <p style="margin:0">Ready-to-post drafts generated from your crypto legal radar. Copy → paste → post.</p>
+        <p style="margin:0">Ready-to-post drafts generated automatically. Copy → paste → post on LinkedIn.</p>
       </div>
       <div style="text-align:right">
         <div style="font-size:0.8rem;color:var(--gray)">Last updated</div>
@@ -65,7 +74,7 @@
       </div>
     </div>
 
-    <div class="stats-row" id="statsRow">
+    <div class="stats-row">
       <div class="stat-card"><div class="stat-num" id="totalDrafts">0</div><div class="stat-label">Total Drafts</div></div>
       <div class="stat-card"><div class="stat-num" id="newDrafts">0</div><div class="stat-label">Ready to Post</div></div>
       <div class="stat-card"><div class="stat-num" id="usedDrafts">0</div><div class="stat-label">Already Posted</div></div>
@@ -78,10 +87,7 @@
     </div>
 
     <div id="draftsContainer">
-      <div class="empty-state">
-        <p style="font-size:1.5rem;margin-bottom:8px">⏳</p>
-        <p>Loading drafts...</p>
-      </div>
+      <div class="empty-state"><p style="font-size:1.5rem;margin-bottom:8px">⏳</p><p>Loading drafts...</p></div>
     </div>
   </div>
 </section>
@@ -100,85 +106,122 @@
 const STORAGE_KEY = 'w3l_draft_status';
 
 function getStatuses() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-  catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
 }
-
 function setStatus(id, status) {
-  const s = getStatuses();
-  s[id] = status;
+  const s = getStatuses(); s[id] = status;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
 }
-
-function formatDate(dateStr) {
-  try {
-    return new Date(dateStr).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  } catch { return dateStr; }
+function formatDate(d) {
+  try { return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch { return d; }
 }
 
-function renderDrafts(drafts, filter = 'all') {
+// Convert markdown to clean HTML for display
+function mdToHtml(text) {
+  if (!text) return '';
+  let html = text
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Bullet points with * or -
+    .replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
+    // Wrap consecutive li items in ul
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    // Line breaks to paragraphs
+    .split('\n\n').map(p => {
+      p = p.trim();
+      if (!p) return '';
+      if (p.startsWith('<ul>') || p.startsWith('<li>')) return p;
+      return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+
+  // Extract and style hashtags
+  html = html.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+  return html;
+}
+
+// Get plain text for copying (keep original markdown for LinkedIn)
+function getPlainText(text) {
+  return text; // LinkedIn handles ** and * fine — keep as is
+}
+
+function renderDrafts(drafts, filter='all') {
   const container = document.getElementById('draftsContainer');
   const statuses = getStatuses();
 
   const filtered = drafts.filter(d => {
-    const status = statuses[d.id] || 'new';
-    if (filter === 'new') return status === 'new';
-    if (filter === 'used') return status === 'used';
+    const s = statuses[d.id] || 'new';
+    if (filter === 'new') return s === 'new';
+    if (filter === 'used') return s === 'used';
     return true;
   });
 
-  // Stats
   const total = drafts.length;
-  const used = drafts.filter(d => (statuses[d.id] || 'new') === 'used').length;
+  const used = drafts.filter(d => (statuses[d.id]||'new') === 'used').length;
   document.getElementById('totalDrafts').textContent = total;
   document.getElementById('newDrafts').textContent = total - used;
   document.getElementById('usedDrafts').textContent = used;
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-state"><p style="font-size:1.5rem;margin-bottom:8px">✅</p><p>No drafts in this category yet.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><p style="font-size:1.5rem;margin-bottom:8px">✅</p><p>No drafts in this category.</p></div>`;
     return;
   }
 
-  container.innerHTML = filtered.map((draft, i) => {
+  container.innerHTML = filtered.map(draft => {
     const status = statuses[draft.id] || 'new';
     const isNew = status === 'new';
+    const renderedHtml = mdToHtml(draft.post || '');
+    const rawText = draft.post || '';
     return `
-      <div class="draft-card" data-status="${status}" data-id="${draft.id}">
-        <div class="draft-header">
-          <div style="flex:1">
-            <div class="draft-meta">
-              <span class="status-badge ${isNew ? 'status-new' : 'status-used'}">${isNew ? '● Ready to Post' : '✓ Posted'}</span>
-              <span class="badge badge-white" style="font-size:11px">${draft.category || 'Compliance'}</span>
-            </div>
-            <div class="draft-topic">${draft.topic || 'LinkedIn Post'}</div>
-            <div class="source-link">Source: <a href="${draft.source_url || '#'}" target="_blank" rel="noopener">${draft.source_title || 'Crypto Legal News'}</a> · ${formatDate(draft.generated_at)}</div>
+    <div class="draft-card" data-id="${draft.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px">
+        <div style="flex:1">
+          <div class="draft-meta">
+            <span class="${isNew ? 'status-new' : 'status-used'}">${isNew ? '● Ready to Post' : '✓ Posted'}</span>
+            <span class="badge badge-white" style="font-size:11px">${draft.category||'Compliance'}</span>
           </div>
-          <button class="copy-btn" onclick="copyDraft('${draft.id}', this)">Copy Post</button>
+          <div class="draft-topic">${draft.topic||'LinkedIn Post'}</div>
+          <div class="source-link">Source: <a href="${draft.source_url||'#'}" target="_blank">${draft.source_title||'Crypto Legal News'}</a> · ${formatDate(draft.generated_at)}</div>
         </div>
-        <div class="draft-body" id="body-${draft.id}">${draft.post}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <span style="font-size:11px;color:var(--gray)">${draft.word_count || ''} words · Best time: Tue/Wed/Thu 8-9 AM IST</span>
-          <button class="mark-btn" onclick="toggleStatus('${draft.id}', this)">${isNew ? '✓ Mark as Posted' : '↩ Mark as Unused'}</button>
+        <button class="copy-btn" onclick="copyDraft('${draft.id}', this)">Copy Post</button>
+      </div>
+      <div class="draft-body" id="rendered-${draft.id}">${renderedHtml}</div>
+      <textarea id="raw-${draft.id}" style="display:none">${rawText}</textarea>
+      <div class="draft-actions">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;color:var(--gray)">${draft.word_count||''} words · Best: Tue/Wed/Thu 8-9 AM IST</span>
+          <button class="raw-toggle" onclick="toggleRaw('${draft.id}', this)">Show raw text</button>
         </div>
-      </div>`;
+        <button class="mark-btn" onclick="toggleStatus('${draft.id}', this)">${isNew ? '✓ Mark as Posted' : '↩ Mark as Unused'}</button>
+      </div>
+      <div class="raw-text" id="rawview-${draft.id}">${rawText}</div>
+    </div>`;
   }).join('');
 }
 
 function copyDraft(id, btn) {
-  const body = document.getElementById('body-' + id);
-  if (!body) return;
-  navigator.clipboard.writeText(body.textContent).then(() => {
+  const raw = document.getElementById('raw-' + id);
+  if (!raw) return;
+  navigator.clipboard.writeText(raw.value).then(() => {
     btn.textContent = '✓ Copied!';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copy Post'; btn.classList.remove('copied'); }, 2500);
   });
 }
 
+function toggleRaw(id, btn) {
+  const view = document.getElementById('rawview-' + id);
+  const visible = view.style.display === 'block';
+  view.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? 'Show raw text' : 'Hide raw text';
+}
+
 function toggleStatus(id, btn) {
   const statuses = getStatuses();
   const current = statuses[id] || 'new';
-  const next = current === 'new' ? 'used' : 'new';
-  setStatus(id, next);
+  setStatus(id, current === 'new' ? 'used' : 'new');
   loadDrafts();
 }
 
@@ -197,7 +240,7 @@ async function loadDrafts() {
     document.getElementById('draftsContainer').innerHTML = `
       <div class="empty-state">
         <p style="font-size:1.5rem;margin-bottom:8px">🔄</p>
-        <p>No drafts yet — they'll appear here automatically when the Crypto Legal Radar runs next.</p>
+        <p>No drafts yet — they appear automatically when the Radar runs.</p>
         <p style="font-size:0.875rem;margin-top:8px">Runs every 6 hours automatically.</p>
       </div>`;
     document.getElementById('lastUpdated').textContent = 'No drafts yet';

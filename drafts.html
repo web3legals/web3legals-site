@@ -204,7 +204,12 @@ function renderDrafts(drafts, filter='all') {
 function copyDraft(id, btn) {
   const raw = document.getElementById('raw-' + id);
   if (!raw) return;
-  navigator.clipboard.writeText(raw.value).then(() => {
+  // Strip markdown for LinkedIn paste
+  let text = raw.value;
+  text = text.replace(/\*\*(.+?)\*\*/g, '$1');
+  text = text.replace(/^\* /gm, '• ');
+  text = text.replace(/^- /gm, '• ');
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = '✓ Copied!';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copy Post'; btn.classList.remove('copied'); }, 2500);

@@ -1,6 +1,7 @@
 // Web3Legals Blog Loader — auto-loads CMS articles with clean SEO URLs
 
 const CMS_ARTICLES = [
+  "cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules",
   "ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline",
   "legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap",
   "mica-s-shadow-binance-s-eu-compliance-challenge-amidst-low-euro-volume",

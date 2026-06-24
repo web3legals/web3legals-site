@@ -1,6 +1,7 @@
 // Web3Legals Blog Loader — auto-loads CMS articles with clean SEO URLs
 
 const CMS_ARTICLES = [
+  "crypto-lobby-s-urgent-plea-tax-staking-mining-rewards-only-upon-sale",
   "us-senate-passes-housing-bill-with-cbdc-ban-until-2030",
   "eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar",
   "cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules",

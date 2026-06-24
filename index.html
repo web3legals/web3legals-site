@@ -13,23 +13,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <style>
-.hero-visual {
-  position: absolute; right: -60px; top: 50%; transform: translateY(-50%);
-  width: 520px; opacity: 0.08; pointer-events: none;
-}
-@media(max-width:1024px){ .hero-visual { display: none; } }
-.stat-divider { width: 1px; height: 40px; background: var(--border2); }
-.feature-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 14px; border-radius: 99px;
-  background: rgba(29,158,117,0.1); border: 1px solid rgba(29,158,117,0.2);
-  font-size: 0.8rem; color: var(--teal); font-weight: 500; margin-bottom: 16px;
-}
+.hero-visual{position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:520px;opacity:0.08;pointer-events:none}
+@media(max-width:1024px){.hero-visual{display:none}}
+.stat-divider{width:1px;height:40px;background:var(--border2)}
+.feature-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);font-size:0.8rem;color:var(--teal);font-weight:500;margin-bottom:16px}
+
+/* ── Radar section ── */
+.radar-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);animation:rpulse 2s infinite}
+@keyframes rpulse{0%,100%{opacity:1}50%{opacity:.25}}
+.radar-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:12px;transition:var(--transition)}
+.radar-card:hover{border-color:var(--border);transform:translateY(-2px)}
+.radar-card-top{display:flex;align-items:center;justify-content:space-between}
+.radar-new{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--teal);background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);padding:2px 9px;border-radius:99px}
+.radar-title{font-size:14px;font-weight:600;color:var(--white);line-height:1.55;flex:1}
+.radar-title a{color:inherit;text-decoration:none}
+.radar-title a:hover{color:var(--gold)}
+.radar-excerpt{font-size:12.5px;color:var(--gray);line-height:1.75}
+.radar-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.radar-date{font-size:11px;color:var(--gray2)}
+.radar-link{font-size:12px;color:var(--gold);font-weight:600;text-decoration:none}
+.radar-skeleton{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);height:200px;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+.radar-live-note{text-align:center;margin-top:20px;font-size:11px;color:var(--gray2);display:flex;align-items:center;justify-content:center;gap:6px}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
@@ -43,16 +52,11 @@
       <li><a href="blog.html">Blog</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
-    <div class="nav-cta">
-      <a href="contact.html" class="btn btn-gold">Book a Call</a>
-    </div>
-    <div class="nav-hamburger" id="hamburger" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </div>
+    <div class="nav-cta"><a href="contact.html" class="btn btn-gold">Book a Call</a></div>
+    <div class="nav-hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></div>
   </div>
 </nav>
 
-<!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <a href="index.html">Home</a>
   <a href="services.html">Services</a>
@@ -62,16 +66,12 @@
   <a href="contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
 </div>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="container" style="position:relative;z-index:2">
     <div class="hero-content fade-up">
-      <div class="hero-eyebrow">
-        <span class="hero-dot"></span>
-        Web3 & Crypto Legal Advisory
-      </div>
+      <div class="hero-eyebrow"><span class="hero-dot"></span>Web3 & Crypto Legal Advisory</div>
       <h1>Legal clarity for the<br><span class="highlight">decentralized world</span></h1>
       <p class="hero-sub">Web3Legals helps blockchain startups, DAOs, token founders, and crypto businesses build on solid legal ground — before regulators come knocking.</p>
       <div class="hero-actions">
@@ -98,7 +98,6 @@
   </div>
 </section>
 
-<!-- TRUSTED -->
 <div class="trusted">
   <div class="container">
     <p class="trusted-label text-center">Advising founders building in</p>
@@ -113,7 +112,6 @@
   </div>
 </div>
 
-<!-- SERVICES PREVIEW -->
 <section class="section">
   <div class="container">
     <div class="text-center fade-up" style="margin-bottom:60px">
@@ -164,7 +162,30 @@
 
 <div class="container"><div class="divider-gold"></div></div>
 
-<!-- ABOUT STRIP -->
+<!-- ── LIVE RADAR SECTION ── -->
+<section class="section" id="radar-section">
+  <div class="container">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:16px">
+      <div class="fade-up">
+        <div class="eyebrow" style="display:flex;align-items:center;gap:8px">
+          <span class="radar-pulse"></span>
+          Live Legal Updates
+        </div>
+        <h2 style="margin-bottom:8px">Latest from the Radar</h2>
+        <p style="margin:0">Auto-updated every 6 hours — fresh regulatory intelligence for Web3 founders</p>
+      </div>
+      <a href="blog.html" class="btn btn-outline" style="white-space:nowrap">View all articles →</a>
+    </div>
+    <div class="grid-3" id="radar-cards">
+      <div class="radar-skeleton"></div>
+      <div class="radar-skeleton"></div>
+      <div class="radar-skeleton"></div>
+    </div>
+  </div>
+</section>
+
+<div class="container"><div class="divider-gold"></div></div>
+
 <section class="section about-strip">
   <div class="container">
     <div class="grid-2">
@@ -205,7 +226,6 @@
   </div>
 </section>
 
-<!-- PROCESS -->
 <section class="section">
   <div class="container">
     <div class="text-center fade-up" style="margin-bottom:60px">
@@ -238,7 +258,6 @@
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
 <section class="section" style="padding-top:0">
   <div class="container">
     <div class="text-center fade-up" style="margin-bottom:48px">
@@ -271,7 +290,6 @@
   </div>
 </section>
 
-<!-- CTA -->
 <section class="section-sm">
   <div class="container">
     <div class="cta-section fade-up">
@@ -286,7 +304,6 @@
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
@@ -338,5 +355,61 @@
 
 <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
 <script src="js/main.js"></script>
+
+<script>
+(async function(){
+  const CMS_ARTICLES=["us-senate-passes-housing-bill-with-cbdc-ban-until-2030","eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar","cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules","ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline","legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap","mica-s-shadow-binance-s-eu-compliance-challenge-amidst-low-euro-volume","india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know","orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders","oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now","india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses","mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi","whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline"];
+  const BADGE_MAP={compliance:"badge-white",token:"badge-gold",dao:"badge-teal",startup:"badge-gold",defi:"badge-teal"};
+  async function fetchMeta(slug){
+    try{
+      const res=await fetch("/blog/"+slug+".md");
+      if(!res.ok)return null;
+      const raw=await res.text();
+      const fm={slug};
+      if(raw.startsWith("---")){
+        const end=raw.indexOf("---",3);
+        if(end!==-1){raw.slice(3,end).trim().split("\n").forEach(function(line){const colon=line.indexOf(":");if(colon>-1){const k=line.slice(0,colon).trim();const v=line.slice(colon+1).trim().replace(/^["']|["']$/g,"");fm[k]=v;}});}
+      }
+      if(!fm.title||fm.title.trim()==="")return null;
+      return fm;
+    }catch(e){return null;}
+  }
+  function isToday(dateStr){
+    try{const d=new Date(dateStr);const n=new Date();return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate();}catch{return false;}
+  }
+  function formatDate(d){
+    try{return new Date(d).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}catch{return d;}
+  }
+  const container=document.getElementById("radar-cards");
+  if(!container)return;
+  const reversed=[].concat(CMS_ARTICLES).reverse();
+  const metas=await Promise.all(reversed.slice(0,6).map(fetchMeta));
+  const articles=metas.filter(Boolean).slice(0,3);
+  if(!articles.length){container.innerHTML="";return;}
+  container.innerHTML=articles.map(function(a){
+    const cat=a.category||"compliance";
+    const label=cat.charAt(0).toUpperCase()+cat.slice(1);
+    const url="/blog/"+a.slug;
+    const today=isToday(a.date);
+    const excerpt=(a.excerpt||"").slice(0,120)+((a.excerpt&&a.excerpt.length>120)?"…":"");
+    return '<div class="radar-card fade-up visible">'
+      +'<div class="radar-card-top">'
+      +'<span class="badge '+(BADGE_MAP[cat]||"badge-white")+'">'+label+'</span>'
+      +(today?'<span class="radar-new">● New</span>':"")
+      +'</div>'
+      +'<div class="radar-title"><a href="'+url+'">'+a.title+'</a></div>'
+      +'<div class="radar-excerpt">'+excerpt+'</div>'
+      +'<div class="radar-footer">'
+      +'<span class="radar-date">'+formatDate(a.date)+'</span>'
+      +'<a href="'+url+'" class="radar-link">Read more →</a>'
+      +'</div>'
+      +'</div>';
+  }).join("");
+  const note=document.createElement("p");
+  note.className="radar-live-note";
+  note.innerHTML='<span class="radar-pulse"></span> Powered by Web3Legals Global Crypto Legal Radar — auto-updates every 6 hours';
+  container.parentElement.appendChild(note);
+})();
+</script>
 </body>
 </html>

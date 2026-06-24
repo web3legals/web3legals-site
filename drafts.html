@@ -8,6 +8,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <style>
+/* ── Password overlay ── */
+#pw-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:#0a0f1e;
+  display:flex;align-items:center;justify-content:center;
+}
+#pw-overlay.hidden{display:none}
+.pw-box{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;
+  padding:48px 40px;
+  width:100%;max-width:380px;
+  text-align:center;
+}
+.pw-logo{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:6px}
+.pw-logo span{color:#C9A84C}
+.pw-sub{font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:32px}
+.pw-input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:10px;color:#fff;font-size:1rem;
+  outline:none;box-sizing:border-box;
+  transition:border-color .2s;margin-bottom:14px;
+}
+.pw-input:focus{border-color:#C9A84C}
+.pw-btn{
+  width:100%;padding:13px;
+  background:#C9A84C;color:#0a0f1e;
+  border:none;border-radius:10px;
+  font-size:1rem;font-weight:700;cursor:pointer;
+  transition:background .2s;
+}
+.pw-btn:hover{background:#E2C97E}
+.pw-error{
+  font-size:0.82rem;color:#ff6b6b;
+  margin-top:12px;min-height:18px;
+}
+.pw-lock{font-size:2.5rem;margin-bottom:20px}
+
+/* ── Page content (hidden until unlocked) ── */
+#page-content{display:none}
+
+/* ── Rest of existing styles ── */
 .draft-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;margin-bottom:20px;transition:var(--transition)}
 .draft-card:hover{border-color:var(--border)}
 .draft-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -44,6 +89,22 @@
 </style>
 </head>
 <body>
+
+<!-- ── PASSWORD OVERLAY ── -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-lock">🔐</div>
+    <div class="pw-logo">Web3<span>Legals</span></div>
+    <div class="pw-sub">Private page — enter password to continue</div>
+    <input class="pw-input" type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+    <button class="pw-btn" id="pw-btn">Unlock</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+
+<!-- ── PAGE CONTENT (hidden until unlocked) ── -->
+<div id="page-content">
+
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
@@ -101,8 +162,55 @@
   </div>
 </footer>
 
+</div><!-- end #page-content -->
+
 <script src="js/main.js"></script>
 <script>
+// ─────────────────────────────────────────────
+//  PASSWORD PROTECTION
+// ─────────────────────────────────────────────
+const HASH = 'f879dfb8c02c68f49f353827d6cbbbde1d3ca881c3241765359d427a0c8ffe4e';
+const SESSION_KEY = 'w3l_unlocked';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function unlock() {
+  document.getElementById('pw-overlay').classList.add('hidden');
+  document.getElementById('page-content').style.display = 'block';
+  loadDrafts();
+}
+
+// Already unlocked this session?
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  unlock();
+}
+
+document.getElementById('pw-btn').addEventListener('click', async () => {
+  const val = document.getElementById('pw-input').value;
+  const err = document.getElementById('pw-error');
+  if (!val) { err.textContent = 'Please enter the password.'; return; }
+  const hash = await sha256(val);
+  if (hash === HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    err.textContent = '';
+    unlock();
+  } else {
+    err.textContent = 'Incorrect password. Try again.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+});
+
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pw-btn').click();
+});
+
+// ─────────────────────────────────────────────
+//  DRAFTS LOGIC  (unchanged)
+// ─────────────────────────────────────────────
 const STORAGE_KEY = 'w3l_draft_status';
 
 function getStatuses() {
@@ -117,34 +225,21 @@ function formatDate(d) {
   catch { return d; }
 }
 
-// Convert markdown to clean HTML for display
 function mdToHtml(text) {
   if (!text) return '';
   let html = text
-    // Bold
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Bullet points with * or -
     .replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
-    // Wrap consecutive li items in ul
     .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
-    // Line breaks to paragraphs
     .split('\n\n').map(p => {
       p = p.trim();
       if (!p) return '';
       if (p.startsWith('<ul>') || p.startsWith('<li>')) return p;
       return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
     }).join('');
-
-  // Extract and style hashtags
   html = html.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
   return html;
-}
-
-// Get plain text for copying (keep original markdown for LinkedIn)
-function getPlainText(text) {
-  return text; // LinkedIn handles ** and * fine — keep as is
 }
 
 function renderDrafts(drafts, filter='all') {
@@ -204,7 +299,6 @@ function renderDrafts(drafts, filter='all') {
 function copyDraft(id, btn) {
   const raw = document.getElementById('raw-' + id);
   if (!raw) return;
-  // Strip markdown for LinkedIn paste
   let text = raw.value;
   text = text.replace(/\*\*(.+?)\*\*/g, '$1');
   text = text.replace(/^\* /gm, '• ');
@@ -260,8 +354,6 @@ document.querySelectorAll('.filter-btn2').forEach(btn => {
     renderDrafts(allDrafts, currentFilter);
   });
 });
-
-loadDrafts();
 </script>
 </body>
 </html>

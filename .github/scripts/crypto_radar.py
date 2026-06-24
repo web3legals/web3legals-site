@@ -1,475 +1,397 @@
 #!/usr/bin/env python3
+"""
+Web3Legals Crypto Legal Radar
+Fetches crypto legal news via Google News RSS.
+No API keys. Free forever. Works on GitHub Actions.
+"""
+
 import os
 import re
 import json
-import time
-import requests
-import feedparser
-from datetime import datetime, timezone
-from slugify import slugify
+import hashlib
+import urllib.request
+import xml.etree.ElementTree as ET
+from datetime import datetime
+from pathlib import Path
 
-# ─────────────────────────────────────────────
-#  LLM PROVIDER CONFIG  (all free tiers)
-# ─────────────────────────────────────────────
-GEMINI_API_KEY   = os.environ.get("GEMINI_API_KEY", "")
-GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")       # free at console.groq.com
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "") # free tier at console.anthropic.com
+# ── CONFIG ───────────────────────────────────────────────────────────────────
 
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions"
-ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
-
-# ─────────────────────────────────────────────
-#  RSS + KEYWORDS  (unchanged)
-# ─────────────────────────────────────────────
+# Google News RSS — free, no auth, always works on GitHub Actions
 RSS_FEEDS = [
-    "https://cointelegraph.com/rss/tag/regulation",
-    "https://decrypt.co/feed",
-    "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml",
-    "https://cryptoslate.com/feed/",
-    "https://bitcoinmagazine.com/.rss/full/",
-    "https://inc42.com/tag/cryptocurrency/feed/",
-    "https://entrackr.com/tag/crypto/feed/",
+    "https://news.google.com/rss/search?q=crypto+regulation+law&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=cryptocurrency+SEC+CFTC&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=MiCA+DeFi+compliance&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=blockchain+legal+court+ruling&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=crypto+AML+KYC+FATF&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=DAO+token+securities+law&hl=en-US&gl=US&ceid=US:en",
 ]
 
-LEGAL_KEYWORDS = [
-    "regulation", "regulatory", "sec ", "cftc", "sebi", "rbi", "fiu",
-    "lawsuit", "enforcement", "ban", "legal", "court", "ruling", "law",
-    "compliance", "mica", "fatf", "aml", "kyc", "tax", "cbdc",
-    "bill", "legislation", "policy", "sanction", "fine", "penalty",
-    "crypto law", "blockchain law", "token", "dao", "defi regulation",
-    "nft law", "web3 law", "india crypto", "crypto india"
+KEYWORDS = [
+    "regulation", "legal", "law", "sec", "cftc", "compliance", "court",
+    "ruling", "ban", "license", "legislation", "enforcement", "sanction",
+    "mica", "fatf", "aml", "kyc", "dao", "token", "securities", "lawsuit",
+    "policy", "regulatory", "crypto law", "blockchain law", "defi", "nft",
 ]
 
-PUBLISHED_FILE   = ".github/scripts/published_urls.json"
-FAILED_QUEUE_FILE = ".github/scripts/failed_queue.json"  # NEW: retry queue
+CATEGORY_MAP = {
+    "token":      ["token", "securities", "howey", "sto", "ico", "coin offering"],
+    "dao":        ["dao", "governance", "decentralized autonomous"],
+    "compliance": ["compliance", "aml", "kyc", "fatf", "travel rule", "sanction", "ofac"],
+    "defi":       ["defi", "nft", "decentralized finance", "smart contract"],
+    "startup":    ["startup", "incorporation", "entity", "formation", "vesting"],
+}
 
-# ─────────────────────────────────────────────
-#  PUBLISHED / FAILED QUEUE HELPERS
-# ─────────────────────────────────────────────
-def load_published():
-    try:
-        with open(PUBLISHED_FILE, 'r') as f:
-            return set(json.load(f))
-    except:
-        return set()
+BLOG_DIR   = Path(__file__).parent.parent / "blog"
+SEEN_FILE  = Path(__file__).parent.parent / ".seen_articles.json"
 
-def save_published(published):
-    os.makedirs(os.path.dirname(PUBLISHED_FILE), exist_ok=True)
-    with open(PUBLISHED_FILE, 'w') as f:
-        json.dump(list(published), f, indent=2)
+# ── HELPERS ──────────────────────────────────────────────────────────────────
 
-def load_failed_queue():
-    try:
-        with open(FAILED_QUEUE_FILE, 'r') as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_failed_queue(queue):
-    os.makedirs(os.path.dirname(FAILED_QUEUE_FILE), exist_ok=True)
-    with open(FAILED_QUEUE_FILE, 'w') as f:
-        json.dump(queue, f, indent=2)
-
-def add_to_failed_queue(news_item):
-    queue = load_failed_queue()
-    urls = [q['url'] for q in queue]
-    if news_item['url'] not in urls:
-        news_item['queued_at'] = datetime.now(timezone.utc).isoformat()
-        queue.append(news_item)
-        save_failed_queue(queue)
-        print(f"📥 Added to retry queue: {news_item['title']}")
-
-def remove_from_failed_queue(url):
-    queue = load_failed_queue()
-    queue = [q for q in queue if q['url'] != url]
-    save_failed_queue(queue)
-
-# ─────────────────────────────────────────────
-#  MULTI-LLM ROUTER  (Gemini → Groq → Claude)
-# ─────────────────────────────────────────────
-def _call_gemini(prompt, retries=3):
-    if not GEMINI_API_KEY:
-        return None
-    for attempt in range(retries):
+def load_seen():
+    if SEEN_FILE.exists():
         try:
-            response = requests.post(
-                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"temperature": 0.5, "maxOutputTokens": 3000}
-                },
-                timeout=90
-            )
-            response.raise_for_status()
-            return response.json()['candidates'][0]['content']['parts'][0]['text'].strip()
-        except requests.exceptions.HTTPError as e:
-            status = e.response.status_code if e.response else 0
-            if status in [429, 503] and attempt < retries - 1:
-                wait = 15 * (2 ** attempt)   # 15s, 30s, 60s
-                print(f"  Gemini {status} — retrying in {wait}s...")
-                time.sleep(wait)
-            else:
-                print(f"  Gemini failed ({status})")
-                return None
-        except Exception as e:
-            if attempt < retries - 1:
-                time.sleep(10)
-            else:
-                print(f"  Gemini error: {e}")
-                return None
-    return None
+            return set(json.loads(SEEN_FILE.read_text()))
+        except Exception:
+            return set()
+    return set()
 
-def _call_groq(prompt):
-    if not GROQ_API_KEY:
-        return None
-    try:
-        response = requests.post(
-            GROQ_URL,
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "llama-3.3-70b-versatile",  # free on Groq
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 3000,
-                "temperature": 0.5
-            },
-            timeout=60
-        )
-        response.raise_for_status()
-        return response.json()['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        print(f"  Groq failed: {e}")
-        return None
+def save_seen(seen):
+    SEEN_FILE.write_text(json.dumps(list(seen), indent=2))
 
-def _call_claude(prompt):
-    if not ANTHROPIC_API_KEY:
-        return None
-    try:
-        response = requests.post(
-            ANTHROPIC_URL,
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",  # cheapest / free-tier friendly
-                "max_tokens": 3000,
-                "messages": [{"role": "user", "content": prompt}]
-            },
-            timeout=90
-        )
-        response.raise_for_status()
-        return response.json()['content'][0]['text'].strip()
-    except Exception as e:
-        print(f"  Claude failed: {e}")
-        return None
+def slugify(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[\s_-]+", "-", text)
+    text = re.sub(r"^-+|-+$", "", text)
+    return text[:80]
 
-def call_llm(prompt):
-    """
-    Tries providers in order: Gemini → Groq → Claude.
-    Returns the first successful response, or None if all fail.
-    """
-    providers = [
-        ("Gemini", _call_gemini),
-        ("Groq",   _call_groq),
-        ("Claude", _call_claude),
-    ]
-    for name, fn in providers:
-        print(f"  → Trying {name}...")
-        result = fn(prompt)
-        if result:
-            print(f"  ✅ {name} responded")
-            return result
-        print(f"  ❌ {name} unavailable, trying next...")
-    print("  ❌ All LLM providers failed")
-    return None
+def article_id(url):
+    return hashlib.md5(url.encode()).hexdigest()[:12]
 
-# ─────────────────────────────────────────────
-#  NEWS FETCHING  (unchanged logic)
-# ─────────────────────────────────────────────
-def is_legal_relevant(title, summary=""):
-    text = (title + " " + summary).lower()
-    return any(kw in text for kw in LEGAL_KEYWORDS)
+def is_relevant(title, description=""):
+    combined = (title + " " + description).lower()
+    return any(kw in combined for kw in KEYWORDS)
 
-def fetch_news():
+def detect_category(title, description=""):
+    combined = (title + " " + description).lower()
+    for cat, terms in CATEGORY_MAP.items():
+        if any(t in combined for t in terms):
+            return cat
+    return "compliance"
+
+def category_badge(cat):
+    return {
+        "token":      ("badge-gold",  "Token Law"),
+        "dao":        ("badge-teal",  "DAO Law"),
+        "compliance": ("badge-white", "Compliance"),
+        "defi":       ("badge-teal",  "DeFi & NFT"),
+        "startup":    ("badge-gold",  "Startup Law"),
+    }.get(cat, ("badge-white", "Crypto Law"))
+
+def category_emoji(cat):
+    return {"token": "🪙", "dao": "🏛", "compliance": "🛡", "defi": "🔗", "startup": "🚀"}.get(cat, "📋")
+
+# ── RSS FETCH ─────────────────────────────────────────────────────────────────
+
+def fetch_feed(url):
     articles = []
-    published = load_published()
-    for feed_url in RSS_FEEDS:
-        try:
-            feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:10]:
-                url = entry.get('link', '')
-                title = entry.get('title', '')
-                summary = entry.get('summary', '')[:500]
-                if url in published:
-                    continue
-                if not is_legal_relevant(title, summary):
-                    continue
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; Web3LegalsBot/1.0)",
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
+        }
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = resp.read()
+        root = ET.fromstring(raw)
+        channel = root.find("channel")
+        items = channel.findall("item") if channel else root.findall(".//item")
+        for item in items[:20]:
+            title = (item.findtext("title") or "").strip()
+            link  = (item.findtext("link")  or "").strip()
+            desc  = re.sub(r"<[^>]+>", "", item.findtext("description") or "").strip()
+            if title and link and is_relevant(title, desc):
                 articles.append({
-                    'title': title,
-                    'url': url,
-                    'summary': summary,
-                    'source': feed.feed.get('title', 'Crypto News'),
+                    "title":       title,
+                    "url":         link,
+                    "description": desc[:600],
+                    "category":    detect_category(title, desc),
                 })
-        except Exception as e:
-            print(f"Error fetching {feed_url}: {e}")
-    return articles, published
-
-# ─────────────────────────────────────────────
-#  ARTICLE + LINKEDIN GENERATION  (now uses call_llm)
-# ─────────────────────────────────────────────
-def generate_article(news_item):
-    meta_prompt = f"""Based on this crypto legal news:
-HEADLINE: {news_item['title']}
-SUMMARY: {news_item['summary']}
-
-Reply with exactly 3 lines, nothing else:
-LINE1: [A compelling article title about the legal implications]
-LINE2: [category - must be exactly one of: compliance, token, dao, startup, defi]
-LINE3: [One sentence excerpt describing the article]"""
-
-    meta_response = call_llm(meta_prompt)
-    if not meta_response:
-        return None
-
-    lines = meta_response.strip().split('\n')
-    title = news_item['title']
-    category = 'compliance'
-    excerpt = news_item['summary'][:150]
-
-    for line in lines:
-        line = line.strip()
-        if line.startswith('LINE1:'):
-            title = line.replace('LINE1:', '').strip().strip('"[]')
-        elif line.startswith('LINE2:'):
-            cat = line.replace('LINE2:', '').strip().lower().strip('"[]')
-            if cat in ['compliance', 'token', 'dao', 'startup', 'defi']:
-                category = cat
-        elif line.startswith('LINE3:'):
-            excerpt = line.replace('LINE3:', '').strip().strip('"[]')
-
-    time.sleep(3)
-
-    body_prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
-
-Write a legal commentary article (800-1000 words) about this crypto legal development:
-HEADLINE: {news_item['title']}
-SOURCE: {news_item['source']}
-SUMMARY: {news_item['summary']}
-
-Cover:
-1. What happened and legal significance
-2. Implications for Web3 founders, DAOs, token projects
-3. Practical action steps founders must take now
-4. Relevant regulations (SEC, MiCA, SEBI, FATF, PMLA as relevant)
-5. Conclusion with CTA to book free 30-min Legal Clarity Call at web3legals.com
-
-Format with ## headings, **bold** key terms, bullet points.
-Write the article directly — no title, no preamble, just the article body."""
-
-    body_response = call_llm(body_prompt)
-    if not body_response:
-        return None
-
-    return {
-        'title': title,
-        'category': category,
-        'readtime': 8,
-        'excerpt': excerpt,
-        'body': body_response
-    }
-
-def generate_linkedin_draft(news_item, article_data):
-    time.sleep(3)
-    prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
-
-A crypto legal article was just published on your blog:
-ARTICLE TITLE: {article_data['title']}
-ARTICLE EXCERPT: {article_data['excerpt']}
-ORIGINAL NEWS: {news_item['title']}
-
-Write a LinkedIn post (250-300 words) with this structure:
-
-HOOK (1-2 lines): Shocking fact, bold statement or question. Never start with "I".
-STORY/VALUE (3-5 short points): Key legal insights from the article.
-CTA: "Full breakdown on my blog → web3legals.com" then ask a question to drive comments.
-HASHTAGS: #Web3Legal #CryptoLaw #BlockchainLaw #Web3Legals + 3 more relevant ones.
-
-Rules:
-- Conversational tone — not corporate
-- Max 3 emojis total
-- Sound like a real person sharing genuine insight
-- Mention web3legals.com in the CTA
-
-Write ONLY the post. Nothing else."""
-
-    post_text = call_llm(prompt)
-    if not post_text:
-        return None
-
-    return {
-        'id': f"draft-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
-        'topic': article_data['title'],
-        'category': article_data.get('category', 'compliance').capitalize(),
-        'post': post_text,
-        'word_count': len(post_text.split()),
-        'source_url': news_item['url'],
-        'source_title': news_item['title'],
-        'generated_at': datetime.now(timezone.utc).isoformat(),
-    }
-
-# ─────────────────────────────────────────────
-#  FILE SAVING  (unchanged)
-# ─────────────────────────────────────────────
-def save_linkedin_draft(draft):
-    drafts_file = 'linkedin-drafts.json'
-    try:
-        with open(drafts_file, 'r') as f:
-            data = json.load(f)
-    except:
-        data = {'drafts': []}
-    data['drafts'].insert(0, draft)
-    data['drafts'] = data['drafts'][:50]
-    data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    with open(drafts_file, 'w') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"✅ LinkedIn draft saved!")
-
-def save_article(article_data, news_url):
-    title = article_data['title']
-    slug = slugify(title)[:80]
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    excerpt = article_data['excerpt'].replace('"', "'")
-    category = article_data['category']
-    readtime = article_data.get('readtime', 8)
-    body = article_data['body']
-
-    markdown = f"""---
-title: "{title}"
-date: "{date}"
-category: "{category}"
-readtime: {readtime}
-excerpt: "{excerpt}"
-source_url: "{news_url}"
-auto_generated: true
----
-
-{body}
-
----
-
-*Auto-generated by Web3Legals Global Crypto Legal Radar.*
-
-*By Rahul Pareek — Founder, Web3Legals | LLM (International & Business Law), NLU*
-
-*Disclaimer: For informational purposes only — not legal advice.*
-"""
-    filename = f"blog/{slug}.md"
-    os.makedirs("blog", exist_ok=True)
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(markdown)
-    print(f"✅ Article saved: {filename}")
-    return slug
-
-def update_blog_loader(new_slug):
-    loader_path = "js/blog-loader.js"
-    try:
-        with open(loader_path, 'r') as f:
-            content = f.read()
-        if new_slug not in content:
-            new_content = re.sub(
-                r'(const CMS_ARTICLES = \[)',
-                f'\\1\n  "{new_slug}",',
-                content
-            )
-            with open(loader_path, 'w') as f:
-                f.write(new_content)
-            print(f"✅ blog-loader.js updated: {new_slug}")
     except Exception as e:
-        print(f"Error updating blog-loader.js: {e}")
+        print(f"  ⚠  Feed error {url[:60]}: {e}")
+    return articles
 
-# ─────────────────────────────────────────────
-#  PROCESS ONE ARTICLE  (shared by main + retry)
-# ─────────────────────────────────────────────
-def process_article(news_item, published):
-    print(f"\n📝 Processing: {news_item['title']}")
-    article_data = generate_article(news_item)
-    if not article_data:
-        print("⚠️  All LLMs failed — adding to retry queue")
-        add_to_failed_queue(news_item)
-        return False
+# ── HTML TEMPLATES ────────────────────────────────────────────────────────────
 
-    slug = save_article(article_data, news_item['url'])
-    update_blog_loader(slug)
+NAV = """<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../services.html">Services</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../blog.html" class="active">Blog</a></li>
+      <li><a href="../contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-cta"><a href="../contact.html" class="btn btn-gold">Book a Call</a></div>
+    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a><a href="../services.html">Services</a>
+  <a href="../about.html">About</a><a href="../blog.html">Blog</a>
+  <a href="../contact.html">Contact</a>
+  <a href="../contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
+</div>"""
 
-    print(f"📱 Generating LinkedIn draft...")
-    linkedin_draft = generate_linkedin_draft(news_item, article_data)
-    if linkedin_draft:
-        save_linkedin_draft(linkedin_draft)
-    else:
-        print("⚠️  LinkedIn draft failed (article still published)")
+FOOTER = """<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="../index.html" class="nav-logo" style="display:inline-flex">
+          <div class="nav-logo-icon">W3</div>
+          <span>Web3<span class="text-gold">Legals</span></span>
+        </a>
+        <p>Legal clarity for the decentralized world.</p>
+        <div class="footer-social">
+          <a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a>
+          <a href="#" class="social-link">𝕏</a>
+        </div>
+      </div>
+      <div class="footer-col"><h4>Services</h4><ul class="footer-links">
+        <li><a href="../services.html">Token Advisory</a></li>
+        <li><a href="../services.html">DAO Wrappers</a></li>
+        <li><a href="../services.html">KYC/AML</a></li>
+      </ul></div>
+      <div class="footer-col"><h4>Company</h4><ul class="footer-links">
+        <li><a href="../about.html">About Rahul</a></li>
+        <li><a href="../blog.html">Blog</a></li>
+        <li><a href="../contact.html">Contact</a></li>
+      </ul></div>
+      <div class="footer-col"><h4>Contact</h4><ul class="footer-links">
+        <li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li>
+        <li><a href="../contact.html">Book a Call</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Web3Legals. Founded by <a href="../about.html">Rahul Pareek</a>.</span>
+      <span>Disclaimer: Informational only — not legal advice.</span>
+    </div>
+  </div>
+</footer>"""
 
-    published.add(news_item['url'])
-    save_published(published)
-    print(f"🚀 Published: {article_data['title']}")
-    return True
+def build_article_html(article, slug):
+    cat         = article["category"]
+    badge_cls, badge_lbl = category_badge(cat)
+    emoji       = category_emoji(cat)
+    date_str    = datetime.now().strftime("%B %d, %Y")
+    title       = article["title"]
+    description = article["description"]
+    source_url  = article["url"]
 
-# ─────────────────────────────────────────────
-#  MAIN
-# ─────────────────────────────────────────────
+    # Turn description into paragraph(s)
+    sentences = re.split(r'(?<=[.!?])\s+', description)
+    paras = []
+    buf = []
+    for s in sentences:
+        buf.append(s)
+        if len(buf) >= 3:
+            paras.append(" ".join(buf))
+            buf = []
+    if buf:
+        paras.append(" ".join(buf))
+    body_html = "\n".join(f"        <p>{p.strip()}</p>" for p in paras if p.strip())
+    if not body_html:
+        body_html = f"        <p>{description}</p>"
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title} — Web3Legals</title>
+<meta name="description" content="{description[:160]}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+{NAV}
+
+<section class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="container" style="position:relative;z-index:2">
+    <div class="eyebrow">
+      <a href="../blog.html" style="color:inherit;text-decoration:none">← Back to Blog</a>
+    </div>
+    <h1 style="font-size:clamp(1.6rem,4vw,2.4rem);max-width:800px;line-height:1.3">{title}</h1>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:16px">
+      <span class="badge {badge_cls}">{badge_lbl}</span>
+      <span style="color:var(--gray);font-size:0.875rem">{date_str}</span>
+      <span style="color:var(--gray);font-size:0.875rem">3 min read</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:40px">
+  <div class="container">
+    <div style="max-width:760px;margin:0 auto">
+
+      <div style="font-size:3.5rem;text-align:center;margin-bottom:32px">{emoji}</div>
+
+      <div style="font-size:1.05rem;line-height:1.85;color:var(--gray-light)">
+{body_html}
+
+        <div style="margin:40px 0;padding:24px;border-left:3px solid var(--gold);background:rgba(212,175,55,0.05);border-radius:0 var(--radius) var(--radius) 0">
+          <p style="margin:0;font-size:0.875rem;color:var(--gray)">
+            <strong style="color:var(--gold)">Source:</strong>
+            This article is based on external reporting.
+            <a href="{source_url}" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Read the original article →</a>
+          </p>
+        </div>
+
+        <div style="margin:48px 0;padding:32px;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:var(--radius);text-align:center">
+          <p style="font-size:0.9rem;color:var(--gray);margin-bottom:20px">
+            <strong style="color:var(--white)">Need legal clarity on this?</strong><br>
+            Rahul Pareek helps Web3 founders navigate crypto regulation — token compliance, DAO structuring, and more.
+          </p>
+          <a href="../contact.html" class="btn btn-gold">Book a Free Consultation →</a>
+        </div>
+      </div>
+
+      <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border)">
+        <a href="../blog.html" class="btn" style="border:1px solid var(--border2)">← All Articles</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{FOOTER}
+
+<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+<script src="../js/main.js"></script>
+</body>
+</html>"""
+
+def build_card_html(article, slug):
+    cat = article["category"]
+    badge_cls, badge_lbl = category_badge(cat)
+    emoji = category_emoji(cat)
+    snippet = article["description"][:180]
+    if len(article["description"]) > 180:
+        snippet += "..."
+    title = article["title"]
+    return f"""      <div class="blog-card fade-up" data-category="{cat}">
+        <div class="blog-card-image">{emoji}</div>
+        <div class="blog-card-body">
+          <div class="blog-card-meta"><span class="badge {badge_cls}">{badge_lbl}</span><span>3 min read</span></div>
+          <h3><a href="blog/{slug}.html">{title}</a></h3>
+          <p>{snippet}</p>
+          <a href="blog/{slug}.html" class="blog-read-more">Read article <span>→</span></a>
+        </div>
+      </div>"""
+
+# ── BLOG INDEX UPDATE ─────────────────────────────────────────────────────────
+
+def update_blog_index(cards_html):
+    """Replace the loading spinner in #cmsArticles with the latest article cards."""
+    blog_index = Path(__file__).parent.parent / "blog.html"
+    if not blog_index.exists():
+        print("  ⚠  blog.html not found — skipping index update")
+        return
+
+    content = blog_index.read_text(encoding="utf-8")
+
+    # The section we want to replace starts at cmsArticles div, ends before staticArticles
+    start_marker = '<div class="grid-3" id="cmsArticles"'
+    end_marker   = '\n\n    <!-- STATIC ARTICLES'
+
+    start = content.find(start_marker)
+    end   = content.find(end_marker, start)
+
+    if start == -1 or end == -1:
+        print("  ⚠  Could not locate #cmsArticles in blog.html")
+        return
+
+    # Find the closing </div> of the cmsArticles block
+    div_end = content.find("</div>", end - 10)  # close tag just before static articles comment
+    # Actually find the </div> that closes the cmsArticles grid
+    depth = 0
+    i = start
+    while i < len(content):
+        if content[i:i+4] == "<div":
+            depth += 1
+        elif content[i:i+6] == "</div>":
+            depth -= 1
+            if depth == 0:
+                div_end = i + 6
+                break
+        i += 1
+
+    new_block = f"""<div class="grid-3" id="cmsArticles" style="margin-bottom:40px">
+{cards_html}
+    </div>"""
+
+    content = content[:start] + new_block + content[div_end:]
+    blog_index.write_text(content, encoding="utf-8")
+    n = cards_html.count('blog-card fade-up')
+    print(f"  ✅ blog.html updated with {n} article cards")
+
+# ── MAIN ──────────────────────────────────────────────────────────────────────
+
 def main():
-    print("🔍 Web3Legals Crypto Legal Radar — Scanning...")
+    print("🌐 Web3Legals — Crypto Legal Radar Starting...")
+    BLOG_DIR.mkdir(exist_ok=True)
 
-    if not any([GEMINI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY]):
-        print("❌ No LLM API key found. Set at least one of: GEMINI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY")
+    seen = load_seen()
+    new_articles = []
+
+    for feed_url in RSS_FEEDS:
+        print(f"  📡 {feed_url[:70]}")
+        for a in fetch_feed(feed_url):
+            aid = article_id(a["url"])
+            if aid not in seen:
+                new_articles.append((aid, a))
+
+    # Deduplicate by title similarity
+    seen_titles = set()
+    deduped = []
+    for aid, a in new_articles:
+        key = slugify(a["title"])[:40]
+        if key not in seen_titles:
+            seen_titles.add(key)
+            deduped.append((aid, a))
+
+    print(f"\n📋 {len(deduped)} new relevant articles found")
+
+    if not deduped:
+        print("✅ Nothing new today. Done.")
         return
 
-    available = []
-    if GEMINI_API_KEY:    available.append("Gemini")
-    if GROQ_API_KEY:      available.append("Groq")
-    if ANTHROPIC_API_KEY: available.append("Claude")
-    print(f"🔑 LLM providers available: {', '.join(available)}")
+    published_cards = []
 
-    published = load_published()
+    for aid, article in deduped[:12]:  # max 12 per run
+        slug = slugify(article["title"])
+        filepath = BLOG_DIR / f"{slug}.html"
 
-    # ── Step 1: retry any previously failed articles first ──
-    failed_queue = load_failed_queue()
-    if failed_queue:
-        print(f"\n♻️  Retrying {len(failed_queue)} articles from previous failures...")
-        for news_item in failed_queue[:]:
-            if news_item['url'] in published:
-                remove_from_failed_queue(news_item['url'])
-                continue
-            success = process_article(news_item, published)
-            if success:
-                remove_from_failed_queue(news_item['url'])
-            time.sleep(10)
+        if filepath.exists():
+            seen.add(aid)
+            continue
 
-    # ── Step 2: fetch and process new articles ──
-    articles, published = fetch_news()
-    print(f"\n📰 Found {len(articles)} new relevant articles")
+        try:
+            filepath.write_text(build_article_html(article, slug), encoding="utf-8")
+            seen.add(aid)
+            published_cards.append(build_card_html(article, slug))
+            print(f"  ✅ {article['title'][:65]}")
+        except Exception as e:
+            print(f"  ❌ {article['title'][:40]} — {e}")
 
-    if not articles:
-        print("✅ No new developments found")
-        return
+    if published_cards:
+        update_blog_index("\n".join(published_cards))
 
-    processed = 0
-    for news_item in articles[:2]:
-        success = process_article(news_item, published)
-        if success:
-            processed += 1
-        if processed < 2:
-            time.sleep(15)
-
-    queue_size = len(load_failed_queue())
-    print(f"\n✅ Done! Published {processed} articles + LinkedIn drafts.")
-    if queue_size:
-        print(f"📥 {queue_size} article(s) in retry queue — will process next run.")
+    save_seen(seen)
+    print(f"\n🎉 Published {len(published_cards)} articles. Cloudflare Pages will deploy automatically.")
 
 if __name__ == "__main__":
     main()

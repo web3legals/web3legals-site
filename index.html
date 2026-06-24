@@ -16,25 +16,62 @@
 .hero-visual{position:absolute;right:-60px;top:50%;transform:translateY(-50%);width:520px;opacity:0.08;pointer-events:none}
 @media(max-width:1024px){.hero-visual{display:none}}
 .stat-divider{width:1px;height:40px;background:var(--border2)}
-.feature-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);font-size:0.8rem;color:var(--teal);font-weight:500;margin-bottom:16px}
 
-/* ── Radar section ── */
-.radar-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);animation:rpulse 2s infinite}
+/* ── Premium Radar Section ── */
+.radar-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);animation:rpulse 2s infinite;flex-shrink:0}
 @keyframes rpulse{0%,100%{opacity:1}50%{opacity:.25}}
-.radar-card{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:12px;transition:var(--transition)}
-.radar-card:hover{border-color:var(--border);transform:translateY(-2px)}
-.radar-card-top{display:flex;align-items:center;justify-content:space-between}
-.radar-new{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--teal);background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);padding:2px 9px;border-radius:99px}
-.radar-title{font-size:14px;font-weight:600;color:var(--white);line-height:1.55;flex:1}
-.radar-title a{color:inherit;text-decoration:none}
-.radar-title a:hover{color:var(--gold)}
-.radar-excerpt{font-size:12.5px;color:var(--gray);line-height:1.75}
-.radar-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.radar-date{font-size:11px;color:var(--gray2)}
-.radar-link{font-size:12px;color:var(--gold);font-weight:600;text-decoration:none}
-.radar-skeleton{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);height:200px;animation:shimmer 1.5s infinite}
-@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
-.radar-live-note{text-align:center;margin-top:20px;font-size:11px;color:var(--gray2);display:flex;align-items:center;justify-content:center;gap:6px}
+
+#radar-section{background:var(--navy2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+
+.radar-header{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:36px;border-bottom:1px solid var(--border2);margin-bottom:40px;flex-wrap:wrap;gap:20px}
+.radar-header-label{display:flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+.radar-header h2{margin-bottom:8px}
+.radar-header p{margin:0;font-size:0.95rem;color:var(--gray)}
+
+.radar-grid{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:24px}
+
+.radar-featured{grid-column:1;grid-row:1/3;background:var(--glass);border:1px solid var(--border2);border-left:3px solid var(--gold);border-radius:var(--radius-lg);padding:40px;display:flex;flex-direction:column;gap:20px;transition:var(--transition);position:relative;overflow:hidden}
+.radar-featured::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:0.5}
+.radar-featured:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+
+.radar-small{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;display:flex;flex-direction:column;gap:12px;transition:var(--transition);position:relative;overflow:hidden}
+.radar-small::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:var(--transition)}
+.radar-small:hover{border-color:var(--border);transform:translateY(-3px);box-shadow:var(--shadow)}
+.radar-small:hover::before{opacity:1}
+
+.radar-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.radar-date{font-size:0.75rem;color:var(--gray2)}
+.radar-new{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;color:var(--teal);background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.25);padding:2px 10px;border-radius:99px;letter-spacing:0.06em;text-transform:uppercase}
+
+.radar-featured-title{font-size:1.35rem;font-weight:700;color:var(--white);line-height:1.4;flex:1}
+.radar-featured-title a{color:inherit;text-decoration:none;transition:var(--transition)}
+.radar-featured-title a:hover{color:var(--gold)}
+
+.radar-small-title{font-size:1rem;font-weight:600;color:var(--white);line-height:1.45;flex:1}
+.radar-small-title a{color:inherit;text-decoration:none;transition:var(--transition)}
+.radar-small-title a:hover{color:var(--gold)}
+
+.radar-excerpt{font-size:0.9rem;color:var(--gray);line-height:1.8}
+.radar-small-excerpt{font-size:0.85rem;color:var(--gray);line-height:1.7}
+
+.radar-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:20px;border-top:1px solid var(--border2)}
+.radar-small-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:14px;border-top:1px solid var(--border2)}
+.radar-link{font-size:0.875rem;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:6px;text-decoration:none;transition:var(--transition)}
+.radar-link:hover{gap:10px}
+.radar-readtime{font-size:0.75rem;color:var(--gray2)}
+
+.radar-skel-grid{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:24px;min-height:320px}
+.radar-skel-featured{grid-column:1;grid-row:1/3;background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:rshimmer 1.5s infinite}
+.radar-skel-sm{background:var(--glass);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:rshimmer 1.5s infinite}
+@keyframes rshimmer{0%,100%{opacity:.25}50%{opacity:.5}}
+
+.radar-live-note{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:28px;font-size:0.78rem;color:var(--gray2);padding-top:24px;border-top:1px solid var(--border2)}
+
+@media(max-width:768px){
+  .radar-grid,.radar-skel-grid{grid-template-columns:1fr;grid-template-rows:auto}
+  .radar-featured{grid-column:1;grid-row:auto}
+  .radar-skel-featured{grid-column:1;grid-row:auto;min-height:180px}
+}
 </style>
 </head>
 <body>
@@ -160,31 +197,29 @@
   </div>
 </section>
 
-<div class="container"><div class="divider-gold"></div></div>
-
-<!-- ── LIVE RADAR SECTION ── -->
+<!-- ── PREMIUM RADAR SECTION ── -->
 <section class="section" id="radar-section">
   <div class="container">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:16px">
-      <div class="fade-up">
-        <div class="eyebrow" style="display:flex;align-items:center;gap:8px">
+    <div class="radar-header fade-up">
+      <div>
+        <div class="radar-header-label">
           <span class="radar-pulse"></span>
-          Live Legal Updates
+          Live Legal Intelligence
         </div>
-        <h2 style="margin-bottom:8px">Latest from the Radar</h2>
-        <p style="margin:0">Auto-updated every 6 hours — fresh regulatory intelligence for Web3 founders</p>
+        <h2>Latest from the Radar</h2>
+        <p>Real-time regulatory intelligence — auto-updated every 6 hours for Web3 founders</p>
       </div>
-      <a href="blog.html" class="btn btn-outline" style="white-space:nowrap">View all articles →</a>
+      <a href="blog.html" class="btn btn-outline">View all articles →</a>
     </div>
-    <div class="grid-3" id="radar-cards">
-      <div class="radar-skeleton"></div>
-      <div class="radar-skeleton"></div>
-      <div class="radar-skeleton"></div>
+    <div id="radar-cards">
+      <div class="radar-skel-grid">
+        <div class="radar-skel-featured"></div>
+        <div class="radar-skel-sm"></div>
+        <div class="radar-skel-sm"></div>
+      </div>
     </div>
   </div>
 </section>
-
-<div class="container"><div class="divider-gold"></div></div>
 
 <section class="section about-strip">
   <div class="container">
@@ -355,60 +390,122 @@
 
 <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
 <script src="js/main.js"></script>
-
 <script>
 (async function(){
-  const CMS_ARTICLES=["us-senate-passes-housing-bill-with-cbdc-ban-until-2030","eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar","cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules","ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline","legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap","mica-s-shadow-binance-s-eu-compliance-challenge-amidst-low-euro-volume","india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know","orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders","oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now","india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses","mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi","whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline"];
-  const BADGE_MAP={compliance:"badge-white",token:"badge-gold",dao:"badge-teal",startup:"badge-gold",defi:"badge-teal"};
+  var CMS=[
+    "us-senate-passes-housing-bill-with-cbdc-ban-until-2030",
+    "eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar",
+    "cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules",
+    "ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline",
+    "legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap",
+    "mica-s-shadow-binance-s-eu-compliance-challenge-amidst-low-euro-volume",
+    "india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know",
+    "orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders",
+    "oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now",
+    "india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses",
+    "mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi",
+    "whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline"
+  ];
+  var BADGES={compliance:"badge-white",token:"badge-gold",dao:"badge-teal",startup:"badge-gold",defi:"badge-teal"};
+
   async function fetchMeta(slug){
     try{
-      const res=await fetch("/blog/"+slug+".md");
-      if(!res.ok)return null;
-      const raw=await res.text();
-      const fm={slug};
+      var r=await fetch("/blog/"+slug+".md");
+      if(!r.ok)return null;
+      var raw=await r.text();
+      var fm={slug:slug};
       if(raw.startsWith("---")){
-        const end=raw.indexOf("---",3);
-        if(end!==-1){raw.slice(3,end).trim().split("\n").forEach(function(line){const colon=line.indexOf(":");if(colon>-1){const k=line.slice(0,colon).trim();const v=line.slice(colon+1).trim().replace(/^["']|["']$/g,"");fm[k]=v;}});}
+        var end=raw.indexOf("---",3);
+        if(end>-1){
+          raw.slice(3,end).trim().split("\n").forEach(function(line){
+            var c=line.indexOf(":");
+            if(c>-1){
+              fm[line.slice(0,c).trim()]=line.slice(c+1).trim().replace(/^["']|["']$/g,"");
+            }
+          });
+        }
       }
-      if(!fm.title||fm.title.trim()==="")return null;
-      return fm;
+      return (fm.title&&fm.title.trim())?fm:null;
     }catch(e){return null;}
   }
-  function isToday(dateStr){
-    try{const d=new Date(dateStr);const n=new Date();return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate();}catch{return false;}
+
+  function isToday(d){
+    try{var dt=new Date(d),n=new Date();return dt.getFullYear()===n.getFullYear()&&dt.getMonth()===n.getMonth()&&dt.getDate()===n.getDate();}
+    catch(e){return false;}
   }
-  function formatDate(d){
-    try{return new Date(d).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}catch{return d;}
+
+  function fmtDate(d){
+    try{return new Date(d).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}
+    catch(e){return d;}
   }
-  const container=document.getElementById("radar-cards");
-  if(!container)return;
-  const reversed=[].concat(CMS_ARTICLES).reverse();
-  const metas=await Promise.all(reversed.slice(0,6).map(fetchMeta));
-  const articles=metas.filter(Boolean).slice(0,3);
-  if(!articles.length){container.innerHTML="";return;}
-  container.innerHTML=articles.map(function(a){
-    const cat=a.category||"compliance";
-    const label=cat.charAt(0).toUpperCase()+cat.slice(1);
-    const url="/blog/"+a.slug;
-    const today=isToday(a.date);
-    const excerpt=(a.excerpt||"").slice(0,120)+((a.excerpt&&a.excerpt.length>120)?"…":"");
-    return '<div class="radar-card fade-up visible">'
-      +'<div class="radar-card-top">'
-      +'<span class="badge '+(BADGE_MAP[cat]||"badge-white")+'">'+label+'</span>'
-      +(today?'<span class="radar-new">● New</span>':"")
-      +'</div>'
-      +'<div class="radar-title"><a href="'+url+'">'+a.title+'</a></div>'
-      +'<div class="radar-excerpt">'+excerpt+'</div>'
-      +'<div class="radar-footer">'
-      +'<span class="radar-date">'+formatDate(a.date)+'</span>'
-      +'<a href="'+url+'" class="radar-link">Read more →</a>'
-      +'</div>'
-      +'</div>';
-  }).join("");
-  const note=document.createElement("p");
-  note.className="radar-live-note";
-  note.innerHTML='<span class="radar-pulse"></span> Powered by Web3Legals Global Crypto Legal Radar — auto-updates every 6 hours';
-  container.parentElement.appendChild(note);
+
+  function trunc(str,n){
+    if(!str)return "";
+    return str.length>n?str.slice(0,n)+"…":str;
+  }
+
+  var wrap=document.getElementById("radar-cards");
+  if(!wrap)return;
+
+  var reversed=CMS.slice().reverse();
+  var metas=await Promise.all(reversed.slice(0,5).map(fetchMeta));
+  var arts=metas.filter(Boolean).slice(0,3);
+
+  if(!arts.length){wrap.innerHTML="";return;}
+
+  var featured=arts[0];
+  var small=arts.slice(1);
+
+  function catLabel(c){return c?c.charAt(0).toUpperCase()+c.slice(1):"Compliance";}
+
+  var featCat=featured.category||"compliance";
+  var featBadge=BADGES[featCat]||"badge-white";
+  var featToday=isToday(featured.date);
+
+  var html='<div class="radar-grid">';
+
+  // Featured card
+  html+='<a href="/blog/'+featured.slug+'" class="radar-featured" style="text-decoration:none">';
+  html+='<div class="radar-meta">';
+  html+='<span class="badge '+featBadge+'">'+catLabel(featCat)+'</span>';
+  if(featToday)html+='<span class="radar-new">● New</span>';
+  html+='<span class="radar-date">'+fmtDate(featured.date)+'</span>';
+  html+='</div>';
+  html+='<div class="radar-featured-title">'+featured.title+'</div>';
+  html+='<div class="radar-excerpt">'+trunc(featured.excerpt,220)+'</div>';
+  html+='<div class="radar-footer">';
+  html+='<span class="radar-link">Read full analysis →</span>';
+  html+='<span class="radar-readtime">'+(featured.readtime||8)+' min read</span>';
+  html+='</div>';
+  html+='</a>';
+
+  // Small cards
+  small.forEach(function(a){
+    var cat=a.category||"compliance";
+    var badge=BADGES[cat]||"badge-white";
+    var today=isToday(a.date);
+    html+='<a href="/blog/'+a.slug+'" class="radar-small" style="text-decoration:none">';
+    html+='<div class="radar-meta">';
+    html+='<span class="badge '+badge+'">'+catLabel(cat)+'</span>';
+    if(today)html+='<span class="radar-new">● New</span>';
+    html+='</div>';
+    html+='<div class="radar-small-title">'+a.title+'</div>';
+    html+='<div class="radar-small-excerpt">'+trunc(a.excerpt,100)+'</div>';
+    html+='<div class="radar-small-footer">';
+    html+='<span class="radar-date">'+fmtDate(a.date)+'</span>';
+    html+='<span class="radar-link" style="font-size:0.8rem">Read more →</span>';
+    html+='</div>';
+    html+='</a>';
+  });
+
+  html+='</div>';
+
+  html+='<div class="radar-live-note">';
+  html+='<span class="radar-pulse"></span>';
+  html+='Powered by Web3Legals Global Crypto Legal Radar — auto-updates every 6 hours';
+  html+='</div>';
+
+  wrap.innerHTML=html;
 })();
 </script>
 </body>

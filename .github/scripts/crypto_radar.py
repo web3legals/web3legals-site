@@ -212,7 +212,7 @@ def build_article_html(article, slug):
 <meta name="description" content="{description[:160]}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 

@@ -1,6 +1,8 @@
 // Web3Legals Blog Loader — auto-loads CMS articles with clean SEO URLs
 
 const CMS_ARTICLES = [
+  "us-senate-passes-housing-bill-with-cbdc-ban-until-2030",
+  "eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar",
   "cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules",
   "ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline",
   "legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap",

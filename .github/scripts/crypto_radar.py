@@ -8,9 +8,20 @@ import feedparser
 from datetime import datetime, timezone
 from slugify import slugify
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+# ─────────────────────────────────────────────
+#  LLM PROVIDER CONFIG  (all free tiers)
+# ─────────────────────────────────────────────
+GEMINI_API_KEY   = os.environ.get("GEMINI_API_KEY", "")
+GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")       # free at console.groq.com
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "") # free tier at console.anthropic.com
 
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions"
+ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+
+# ─────────────────────────────────────────────
+#  RSS + KEYWORDS  (unchanged)
+# ─────────────────────────────────────────────
 RSS_FEEDS = [
     "https://cointelegraph.com/rss/tag/regulation",
     "https://decrypt.co/feed",
@@ -30,8 +41,12 @@ LEGAL_KEYWORDS = [
     "nft law", "web3 law", "india crypto", "crypto india"
 ]
 
-PUBLISHED_FILE = ".github/scripts/published_urls.json"
+PUBLISHED_FILE   = ".github/scripts/published_urls.json"
+FAILED_QUEUE_FILE = ".github/scripts/failed_queue.json"  # NEW: retry queue
 
+# ─────────────────────────────────────────────
+#  PUBLISHED / FAILED QUEUE HELPERS
+# ─────────────────────────────────────────────
 def load_published():
     try:
         with open(PUBLISHED_FILE, 'r') as f:
@@ -44,6 +59,139 @@ def save_published(published):
     with open(PUBLISHED_FILE, 'w') as f:
         json.dump(list(published), f, indent=2)
 
+def load_failed_queue():
+    try:
+        with open(FAILED_QUEUE_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_failed_queue(queue):
+    os.makedirs(os.path.dirname(FAILED_QUEUE_FILE), exist_ok=True)
+    with open(FAILED_QUEUE_FILE, 'w') as f:
+        json.dump(queue, f, indent=2)
+
+def add_to_failed_queue(news_item):
+    queue = load_failed_queue()
+    urls = [q['url'] for q in queue]
+    if news_item['url'] not in urls:
+        news_item['queued_at'] = datetime.now(timezone.utc).isoformat()
+        queue.append(news_item)
+        save_failed_queue(queue)
+        print(f"📥 Added to retry queue: {news_item['title']}")
+
+def remove_from_failed_queue(url):
+    queue = load_failed_queue()
+    queue = [q for q in queue if q['url'] != url]
+    save_failed_queue(queue)
+
+# ─────────────────────────────────────────────
+#  MULTI-LLM ROUTER  (Gemini → Groq → Claude)
+# ─────────────────────────────────────────────
+def _call_gemini(prompt, retries=3):
+    if not GEMINI_API_KEY:
+        return None
+    for attempt in range(retries):
+        try:
+            response = requests.post(
+                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.5, "maxOutputTokens": 3000}
+                },
+                timeout=90
+            )
+            response.raise_for_status()
+            return response.json()['candidates'][0]['content']['parts'][0]['text'].strip()
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response else 0
+            if status in [429, 503] and attempt < retries - 1:
+                wait = 15 * (2 ** attempt)   # 15s, 30s, 60s
+                print(f"  Gemini {status} — retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                print(f"  Gemini failed ({status})")
+                return None
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(10)
+            else:
+                print(f"  Gemini error: {e}")
+                return None
+    return None
+
+def _call_groq(prompt):
+    if not GROQ_API_KEY:
+        return None
+    try:
+        response = requests.post(
+            GROQ_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",  # free on Groq
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 3000,
+                "temperature": 0.5
+            },
+            timeout=60
+        )
+        response.raise_for_status()
+        return response.json()['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        print(f"  Groq failed: {e}")
+        return None
+
+def _call_claude(prompt):
+    if not ANTHROPIC_API_KEY:
+        return None
+    try:
+        response = requests.post(
+            ANTHROPIC_URL,
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",  # cheapest / free-tier friendly
+                "max_tokens": 3000,
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=90
+        )
+        response.raise_for_status()
+        return response.json()['content'][0]['text'].strip()
+    except Exception as e:
+        print(f"  Claude failed: {e}")
+        return None
+
+def call_llm(prompt):
+    """
+    Tries providers in order: Gemini → Groq → Claude.
+    Returns the first successful response, or None if all fail.
+    """
+    providers = [
+        ("Gemini", _call_gemini),
+        ("Groq",   _call_groq),
+        ("Claude", _call_claude),
+    ]
+    for name, fn in providers:
+        print(f"  → Trying {name}...")
+        result = fn(prompt)
+        if result:
+            print(f"  ✅ {name} responded")
+            return result
+        print(f"  ❌ {name} unavailable, trying next...")
+    print("  ❌ All LLM providers failed")
+    return None
+
+# ─────────────────────────────────────────────
+#  NEWS FETCHING  (unchanged logic)
+# ─────────────────────────────────────────────
 def is_legal_relevant(title, summary=""):
     text = (title + " " + summary).lower()
     return any(kw in text for kw in LEGAL_KEYWORDS)
@@ -70,42 +218,11 @@ def fetch_news():
                 })
         except Exception as e:
             print(f"Error fetching {feed_url}: {e}")
-            continue
     return articles, published
 
-def call_gemini(prompt, retries=3):
-    for attempt in range(retries):
-        try:
-            response = requests.post(
-                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"temperature": 0.5, "maxOutputTokens": 3000}
-                },
-                timeout=90
-            )
-            response.raise_for_status()
-            result = response.json()
-            return result['candidates'][0]['content']['parts'][0]['text'].strip()
-        except requests.exceptions.HTTPError as e:
-            status = e.response.status_code if e.response else 0
-            if status in [429, 503] and attempt < retries - 1:
-                wait = 30 * (attempt + 1)
-                print(f"Gemini busy ({status}) — waiting {wait}s then retrying... (attempt {attempt+1}/{retries})")
-                time.sleep(wait)
-                continue
-            print(f"Gemini API error: {e}")
-            return None
-        except Exception as e:
-            if attempt < retries - 1:
-                print(f"Error (attempt {attempt+1}/{retries}): {e} — retrying in 15s...")
-                time.sleep(15)
-                continue
-            print(f"Gemini API error: {e}")
-            return None
-    return None
-
+# ─────────────────────────────────────────────
+#  ARTICLE + LINKEDIN GENERATION  (now uses call_llm)
+# ─────────────────────────────────────────────
 def generate_article(news_item):
     meta_prompt = f"""Based on this crypto legal news:
 HEADLINE: {news_item['title']}
@@ -116,7 +233,7 @@ LINE1: [A compelling article title about the legal implications]
 LINE2: [category - must be exactly one of: compliance, token, dao, startup, defi]
 LINE3: [One sentence excerpt describing the article]"""
 
-    meta_response = call_gemini(meta_prompt)
+    meta_response = call_llm(meta_prompt)
     if not meta_response:
         return None
 
@@ -136,7 +253,7 @@ LINE3: [One sentence excerpt describing the article]"""
         elif line.startswith('LINE3:'):
             excerpt = line.replace('LINE3:', '').strip().strip('"[]')
 
-    time.sleep(5)
+    time.sleep(3)
 
     body_prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
 
@@ -155,7 +272,7 @@ Cover:
 Format with ## headings, **bold** key terms, bullet points.
 Write the article directly — no title, no preamble, just the article body."""
 
-    body_response = call_gemini(body_prompt)
+    body_response = call_llm(body_prompt)
     if not body_response:
         return None
 
@@ -168,7 +285,7 @@ Write the article directly — no title, no preamble, just the article body."""
     }
 
 def generate_linkedin_draft(news_item, article_data):
-    time.sleep(5)
+    time.sleep(3)
     prompt = f"""You are Rahul Pareek, Founder of Web3Legals, Double Gold Medallist LLM from National Law University India.
 
 A crypto legal article was just published on your blog:
@@ -191,7 +308,7 @@ Rules:
 
 Write ONLY the post. Nothing else."""
 
-    post_text = call_gemini(prompt)
+    post_text = call_llm(prompt)
     if not post_text:
         return None
 
@@ -206,6 +323,9 @@ Write ONLY the post. Nothing else."""
         'generated_at': datetime.now(timezone.utc).isoformat(),
     }
 
+# ─────────────────────────────────────────────
+#  FILE SAVING  (unchanged)
+# ─────────────────────────────────────────────
 def save_linkedin_draft(draft):
     drafts_file = 'linkedin-drafts.json'
     try:
@@ -271,16 +391,68 @@ def update_blog_loader(new_slug):
                 f.write(new_content)
             print(f"✅ blog-loader.js updated: {new_slug}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error updating blog-loader.js: {e}")
 
+# ─────────────────────────────────────────────
+#  PROCESS ONE ARTICLE  (shared by main + retry)
+# ─────────────────────────────────────────────
+def process_article(news_item, published):
+    print(f"\n📝 Processing: {news_item['title']}")
+    article_data = generate_article(news_item)
+    if not article_data:
+        print("⚠️  All LLMs failed — adding to retry queue")
+        add_to_failed_queue(news_item)
+        return False
+
+    slug = save_article(article_data, news_item['url'])
+    update_blog_loader(slug)
+
+    print(f"📱 Generating LinkedIn draft...")
+    linkedin_draft = generate_linkedin_draft(news_item, article_data)
+    if linkedin_draft:
+        save_linkedin_draft(linkedin_draft)
+    else:
+        print("⚠️  LinkedIn draft failed (article still published)")
+
+    published.add(news_item['url'])
+    save_published(published)
+    print(f"🚀 Published: {article_data['title']}")
+    return True
+
+# ─────────────────────────────────────────────
+#  MAIN
+# ─────────────────────────────────────────────
 def main():
     print("🔍 Web3Legals Crypto Legal Radar — Scanning...")
-    if not GEMINI_API_KEY:
-        print("❌ GEMINI_API_KEY not set")
+
+    if not any([GEMINI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY]):
+        print("❌ No LLM API key found. Set at least one of: GEMINI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY")
         return
 
+    available = []
+    if GEMINI_API_KEY:    available.append("Gemini")
+    if GROQ_API_KEY:      available.append("Groq")
+    if ANTHROPIC_API_KEY: available.append("Claude")
+    print(f"🔑 LLM providers available: {', '.join(available)}")
+
+    published = load_published()
+
+    # ── Step 1: retry any previously failed articles first ──
+    failed_queue = load_failed_queue()
+    if failed_queue:
+        print(f"\n♻️  Retrying {len(failed_queue)} articles from previous failures...")
+        for news_item in failed_queue[:]:
+            if news_item['url'] in published:
+                remove_from_failed_queue(news_item['url'])
+                continue
+            success = process_article(news_item, published)
+            if success:
+                remove_from_failed_queue(news_item['url'])
+            time.sleep(10)
+
+    # ── Step 2: fetch and process new articles ──
     articles, published = fetch_news()
-    print(f"📰 Found {len(articles)} new relevant articles")
+    print(f"\n📰 Found {len(articles)} new relevant articles")
 
     if not articles:
         print("✅ No new developments found")
@@ -288,25 +460,16 @@ def main():
 
     processed = 0
     for news_item in articles[:2]:
-        print(f"\n📝 Processing: {news_item['title']}")
-        article_data = generate_article(news_item)
-        if not article_data:
-            print("⚠️ Skipping — could not generate article")
-            continue
-        slug = save_article(article_data, news_item['url'])
-        update_blog_loader(slug)
-        print(f"📱 Generating LinkedIn draft...")
-        linkedin_draft = generate_linkedin_draft(news_item, article_data)
-        if linkedin_draft:
-            save_linkedin_draft(linkedin_draft)
-        published.add(news_item['url'])
-        save_published(published)
-        processed += 1
-        print(f"🚀 Published: {article_data['title']}")
+        success = process_article(news_item, published)
+        if success:
+            processed += 1
         if processed < 2:
             time.sleep(15)
 
+    queue_size = len(load_failed_queue())
     print(f"\n✅ Done! Published {processed} articles + LinkedIn drafts.")
+    if queue_size:
+        print(f"📥 {queue_size} article(s) in retry queue — will process next run.")
 
 if __name__ == "__main__":
     main()

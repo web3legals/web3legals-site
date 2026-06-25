@@ -52,13 +52,7 @@
 .radar-new{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;color:var(--teal);background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.25);padding:2px 10px;border-radius:99px;letter-spacing:0.06em;text-transform:uppercase}
 
 .radar-featured-title{font-size:1.35rem;font-weight:700;color:var(--white);line-height:1.4;flex:1}
-.radar-featured-title a{color:inherit;text-decoration:none;transition:var(--transition)}
-.radar-featured-title a:hover{color:var(--gold)}
-
 .radar-small-title{font-size:1rem;font-weight:600;color:var(--white);line-height:1.45;flex:1}
-.radar-small-title a{color:inherit;text-decoration:none;transition:var(--transition)}
-.radar-small-title a:hover{color:var(--gold)}
-
 .radar-excerpt{font-size:0.9rem;color:var(--gray);line-height:1.8}
 .radar-small-excerpt{font-size:0.85rem;color:var(--gray);line-height:1.7}
 
@@ -295,7 +289,7 @@
           Live Legal Intelligence
         </div>
         <h2>Latest from the Radar</h2>
-        <p>Real-time regulatory intelligence — auto-updated every 6 hours for Web3 founders</p>
+        <p>Real-time regulatory intelligence — auto-updated daily for Web3 founders</p>
       </div>
       <a href="blog.html" class="btn btn-outline">View all articles →</a>
     </div>
@@ -486,51 +480,50 @@
 <script src="js/main.js"></script>
 <script>
 (async function(){
+  // Latest articles — updated automatically by crypto_radar.py
   var CMS=[
-    "us-senate-passes-housing-bill-with-cbdc-ban-until-2030",
-    "eu-committee-advances-digital-euro-legal-framework-takes-shape-with-key-safeguar",
-    "cftc-s-dual-regulatory-vision-perpetual-futures-face-differentiated-rules",
-    "ripple-gains-preliminary-mica-license-ahead-of-july-1-eu-deadline",
-    "legal-crossroads-boe-eases-stablecoin-reserves-imposes-ps40b-issuance-cap",
-    "mica-s-shadow-binance-s-eu-compliance-challenge-amidst-low-euro-volume",
-    "india-s-crypto-legal-framework-in-2026-what-every-web3-founder-must-know",
-    "orissa-high-court-s-crypto-ruling-what-it-means-for-indian-web3-founders",
-    "oecd-crypto-reporting-framework-2027-how-indian-web3-businesses-must-prepare-now",
-    "india-s-30-crypto-tax-1-tds-the-complete-legal-guide-for-web3-businesses",
-    "mica-2-0-consultation-europe-s-legal-blueprint-for-stablecoins-and-defi",
-    "whitebit-secures-mica-license-in-austria-ahead-of-july-1-eu-deadline"
+    "a-long-awaited-step-sec-and-cftc-provide-interpretation-for-crypto-asset-taxonom",
+    "a-potential-turning-point-in-crypto-regulation-seccftc-joint-interpretation-caps",
+    "cftc-and-sec-signal-new-era-of-crypto-harmonization-at-joint-project-crypto-even",
+    "crypto-industry-scores-win-as-clarity-act-regulation-bill-clears-senate-hurdle-c",
+    "cryptocurrency-and-digital-commerce-regulation-what-the-mls-course-covers-univer",
+    "cryptocurrency-regulation-in-the-us-and-the-eu-dowjonescom",
+    "derivative-crypto-products-big-winners-in-harmonized-sec-cftc-ignites-morgan-lew",
+    "law-enforcement-banks-warn-of-money-laundering-gaps-in-major-us-crypto-bill-inte",
+    "law-enforcement-groups-warn-clarity-act-could-hinder-crypto-crime-investigations",
+    "polish-president-vetoes-crypto-regulation-for-the-third-time-reuters",
+    "sec-and-cftc-issue-joint-interpretation-on-crypto-asset-regulation-united-states",
+    "sec-and-cftc-sign-landmark-memorandum-of-understanding-on-regulatory-harmonizati"
   ];
+
   var BADGES={compliance:"badge-white",token:"badge-gold",dao:"badge-teal",startup:"badge-gold",defi:"badge-teal"};
 
   async function fetchMeta(slug){
     try{
-      var r=await fetch("/blog/"+slug+".md");
+      var r=await fetch("/blog/"+slug+".html");
       if(!r.ok)return null;
       var raw=await r.text();
-      var fm={slug:slug};
-      if(raw.startsWith("---")){
-        var end=raw.indexOf("---",3);
-        if(end>-1){
-          raw.slice(3,end).trim().split("\n").forEach(function(line){
-            var c=line.indexOf(":");
-            if(c>-1){
-              fm[line.slice(0,c).trim()]=line.slice(c+1).trim().replace(/^["']|["']$/g,"");
-            }
-          });
-        }
+      var titleMatch=raw.match(/<title>([^<]+)<\/title>/);
+      var descMatch=raw.match(/<meta name="description" content="([^"]+)"/);
+      var badgeMatch=raw.match(/class="badge ([^"]+)">([^<]+)<\/span>/);
+      if(!titleMatch)return null;
+      var title=titleMatch[1].replace(" — Web3Legals","").trim();
+      var excerpt=descMatch?descMatch[1]:"";
+      var category="compliance";
+      if(badgeMatch){
+        var bl=badgeMatch[2].toLowerCase();
+        if(bl.includes("token"))category="token";
+        else if(bl.includes("dao"))category="dao";
+        else if(bl.includes("defi")||bl.includes("nft"))category="defi";
+        else if(bl.includes("startup"))category="startup";
       }
-      return (fm.title&&fm.title.trim())?fm:null;
+      return {slug:slug,title:title,excerpt:excerpt,category:category,date:new Date().toISOString()};
     }catch(e){return null;}
-  }
-
-  function isToday(d){
-    try{var dt=new Date(d),n=new Date();return dt.getFullYear()===n.getFullYear()&&dt.getMonth()===n.getMonth()&&dt.getDate()===n.getDate();}
-    catch(e){return false;}
   }
 
   function fmtDate(d){
     try{return new Date(d).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}
-    catch(e){return d;}
+    catch(e){return "Today";}
   }
 
   function trunc(str,n){
@@ -541,8 +534,7 @@
   var wrap=document.getElementById("radar-cards");
   if(!wrap)return;
 
-  var reversed=CMS.slice().reverse();
-  var metas=await Promise.all(reversed.slice(0,5).map(fetchMeta));
+  var metas=await Promise.all(CMS.slice(0,5).map(fetchMeta));
   var arts=metas.filter(Boolean).slice(0,3);
 
   if(!arts.length){wrap.innerHTML="";return;}
@@ -554,49 +546,42 @@
 
   var featCat=featured.category||"compliance";
   var featBadge=BADGES[featCat]||"badge-white";
-  var featToday=isToday(featured.date);
 
   var html='<div class="radar-grid">';
 
-  // Featured card
-  html+='<a href="/blog/'+featured.slug+'" class="radar-featured" style="text-decoration:none">';
+  html+='<a href="/blog/'+featured.slug+'.html" class="radar-featured" style="text-decoration:none">';
   html+='<div class="radar-meta">';
   html+='<span class="badge '+featBadge+'">'+catLabel(featCat)+'</span>';
-  if(featToday)html+='<span class="radar-new">● New</span>';
-  html+='<span class="radar-date">'+fmtDate(featured.date)+'</span>';
+  html+='<span class="radar-new">● New</span>';
   html+='</div>';
   html+='<div class="radar-featured-title">'+featured.title+'</div>';
   html+='<div class="radar-excerpt">'+trunc(featured.excerpt,220)+'</div>';
   html+='<div class="radar-footer">';
   html+='<span class="radar-link">Read full analysis →</span>';
-  html+='<span class="radar-readtime">'+(featured.readtime||8)+' min read</span>';
+  html+='<span class="radar-readtime">3 min read</span>';
   html+='</div>';
   html+='</a>';
 
-  // Small cards
   small.forEach(function(a){
     var cat=a.category||"compliance";
     var badge=BADGES[cat]||"badge-white";
-    var today=isToday(a.date);
-    html+='<a href="/blog/'+a.slug+'" class="radar-small" style="text-decoration:none">';
+    html+='<a href="/blog/'+a.slug+'.html" class="radar-small" style="text-decoration:none">';
     html+='<div class="radar-meta">';
     html+='<span class="badge '+badge+'">'+catLabel(cat)+'</span>';
-    if(today)html+='<span class="radar-new">● New</span>';
+    html+='<span class="radar-new">● New</span>';
     html+='</div>';
     html+='<div class="radar-small-title">'+a.title+'</div>';
     html+='<div class="radar-small-excerpt">'+trunc(a.excerpt,100)+'</div>';
     html+='<div class="radar-small-footer">';
-    html+='<span class="radar-date">'+fmtDate(a.date)+'</span>';
     html+='<span class="radar-link" style="font-size:0.8rem">Read more →</span>';
     html+='</div>';
     html+='</a>';
   });
 
   html+='</div>';
-
   html+='<div class="radar-live-note">';
   html+='<span class="radar-pulse"></span>';
-  html+='Powered by Web3Legals Global Crypto Legal Radar — auto-updates every 6 hours';
+  html+='Powered by Web3Legals Global Crypto Legal Radar — auto-updates daily';
   html+='</div>';
 
   wrap.innerHTML=html;

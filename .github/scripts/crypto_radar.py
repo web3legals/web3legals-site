@@ -41,8 +41,8 @@ CATEGORY_MAP = {
     "startup":    ["startup", "incorporation", "entity", "formation", "vesting"],
 }
 
-BLOG_DIR   = Path(__file__).parent.parent / "blog"
-SEEN_FILE  = Path(__file__).parent.parent / ".seen_articles.json"
+BLOG_DIR   = Path(__file__).parent.parent.parent / "blog"
+SEEN_FILE  = Path(__file__).parent.parent.parent / ".seen_articles.json"
 
 # ── HELPERS ──────────────────────────────────────────────────────────────────
 

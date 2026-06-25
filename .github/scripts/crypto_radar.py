@@ -212,7 +212,7 @@ def build_article_html(article, slug):
 <meta name="description" content="{description[:160]}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -343,8 +343,8 @@ def update_blog_index(cards_html):
 def main():
     print("🌐 Web3Legals — Crypto Legal Radar Starting...")
     if BLOG_DIR.exists() and not BLOG_DIR.is_dir():
-    BLOG_DIR.unlink()
-BLOG_DIR.mkdir(exist_ok=True)
+        BLOG_DIR.unlink()
+    BLOG_DIR.mkdir(exist_ok=True)
 
     seen = load_seen()
     new_articles = []

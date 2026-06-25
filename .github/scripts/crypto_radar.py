@@ -342,7 +342,9 @@ def update_blog_index(cards_html):
 
 def main():
     print("🌐 Web3Legals — Crypto Legal Radar Starting...")
-    BLOG_DIR.mkdir(exist_ok=True)
+    if BLOG_DIR.exists() and not BLOG_DIR.is_dir():
+    BLOG_DIR.unlink()
+BLOG_DIR.mkdir(exist_ok=True)
 
     seen = load_seen()
     new_articles = []

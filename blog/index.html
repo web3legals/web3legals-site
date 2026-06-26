@@ -1,87 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Legal Intelligence Blog | Web3Legals</title>
-  <meta name="description" content="Expert legal analysis on crypto regulation, fintech law, and Indian courts — by Rahul Pareek, Web3Legals." />
-  <link rel="stylesheet" href="/css/style.css" />
+  <meta name="description" content="Expert legal analysis on crypto regulation, fintech law, and Indian courts."/>
+  <link rel="stylesheet" href="/css/style.css"/>
   <style>
-    body { background:#0a0b0f; color:#d4d8e2; font-family:'Inter',sans-serif; margin:0; }
-    .blog-hero {
-      background:linear-gradient(135deg,#0d1117 0%,#0f1923 60%,#0a0b0f 100%);
-      border-bottom:1px solid #1e2535; padding:100px 24px 60px; text-align:center;
-    }
-    .blog-hero .eyebrow {
-      font-size:.74rem; font-weight:700; letter-spacing:.16em;
-      text-transform:uppercase; color:#00d4ff; margin-bottom:14px;
-    }
-    .blog-hero h1 {
-      font-size:clamp(1.9rem,5vw,3.1rem); font-weight:800; color:#f0f4ff;
-      margin:0 0 14px; letter-spacing:-.022em; line-height:1.15;
-    }
-    .blog-hero h1 span { color:#00d4ff; }
-    .blog-hero .sub { font-size:1rem; color:#6b7a99; max-width:540px; margin:0 auto; line-height:1.7; }
-    .blog-hero .pill {
-      display:inline-block; margin-top:20px; padding:6px 18px; border-radius:20px;
-      background:#00d4ff12; border:1px solid #00d4ff30; color:#00d4ff; font-size:.78rem; font-weight:600;
-    }
-    .filters { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:36px 24px 0; }
-    .fbtn {
-      padding:8px 18px; border-radius:6px; border:1px solid #2a3245;
-      background:transparent; color:#8a94b0; cursor:pointer; font-size:.82rem; font-weight:500; transition:all .2s;
-    }
-    .fbtn:hover,.fbtn.active { background:#00d4ff12; border-color:#00d4ff50; color:#00d4ff; }
-    .grid {
-      max-width:1200px; margin:40px auto 80px; padding:0 24px;
-      display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:24px;
-    }
-    .card {
-      background:#0f1420; border:1px solid #1e2535; border-radius:10px;
-      padding:26px; display:flex; flex-direction:column; transition:border-color .2s,transform .2s;
-    }
-    .card:hover { border-color:#00d4ff40; transform:translateY(-3px); }
-    .card.hidden { display:none; }
-    .card-badge {
-      font-size:.7rem; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
-      color:#00d4ff; background:#00d4ff10; border:1px solid #00d4ff30;
-      border-radius:4px; padding:3px 9px; display:inline-block; width:fit-content; margin-bottom:14px;
-    }
-    .card-title { font-size:.97rem; font-weight:600; color:#e8edf8; line-height:1.45; margin:0 0 12px; flex-grow:1; }
-    .card-snippet { font-size:.85rem; color:#6b7a99; line-height:1.65; margin:0 0 18px; }
-    .card-footer {
-      display:flex; justify-content:space-between; align-items:center;
-      border-top:1px solid #1e2535; padding-top:14px; margin-top:auto;
-    }
-    .card-meta { font-size:.74rem; color:#4a5568; }
-    .card-meta em { font-style:normal; color:#2e7d5e; }
-    .card-read { font-size:.82rem; font-weight:600; color:#00d4ff; text-decoration:none; transition:opacity .2s; }
-    .card-read:hover { opacity:.65; }
-    .empty { text-align:center; color:#4a5568; padding:64px 0; grid-column:1/-1; }
-    @media(max-width:600px) { .grid { grid-template-columns:1fr; } }
+    body{background:#0a0b0f;color:#d4d8e2;font-family:'Inter',sans-serif;margin:0}
+    .blog-hero{background:linear-gradient(135deg,#0d1117 0%,#0f1923 60%,#0a0b0f 100%);border-bottom:1px solid #1e2535;padding:100px 24px 60px;text-align:center}
+    .blog-hero .eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#00d4ff;margin-bottom:14px}
+    .blog-hero h1{font-size:clamp(1.9rem,5vw,3.1rem);font-weight:800;color:#f0f4ff;margin:0 0 14px;letter-spacing:-.022em;line-height:1.15}
+    .blog-hero h1 span{color:#00d4ff}
+    .blog-hero .sub{font-size:1rem;color:#6b7a99;max-width:540px;margin:0 auto;line-height:1.7}
+    .blog-hero .pill{display:inline-block;margin-top:20px;padding:6px 18px;border-radius:20px;background:#00d4ff12;border:1px solid #00d4ff30;color:#00d4ff;font-size:.78rem;font-weight:600}
+    .filters{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:36px 24px 0}
+    .fbtn{padding:8px 18px;border-radius:6px;border:1px solid #2a3245;background:transparent;color:#8a94b0;cursor:pointer;font-size:.82rem;font-weight:500;transition:all .2s}
+    .fbtn:hover,.fbtn.active{background:#00d4ff12;border-color:#00d4ff50;color:#00d4ff}
+    .grid{max-width:1200px;margin:40px auto 80px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:24px}
+    .card{background:#0f1420;border:1px solid #1e2535;border-radius:10px;padding:26px;display:flex;flex-direction:column;transition:border-color .2s,transform .2s}
+    .card:hover{border-color:#00d4ff40;transform:translateY(-3px)}
+    .card.hidden{display:none}
+    .card-badge{font-size:.7rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#00d4ff;background:#00d4ff10;border:1px solid #00d4ff30;border-radius:4px;padding:3px 9px;display:inline-block;width:fit-content;margin-bottom:14px}
+    .card-title{font-size:.97rem;font-weight:600;color:#e8edf8;line-height:1.45;margin:0 0 12px;flex-grow:1}
+    .card-snippet{font-size:.85rem;color:#6b7a99;line-height:1.65;margin:0 0 18px}
+    .card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1e2535;padding-top:14px;margin-top:auto}
+    .card-meta{font-size:.74rem;color:#4a5568}
+    .card-meta em{font-style:normal;color:#2e7d5e}
+    .card-read{font-size:.82rem;font-weight:600;color:#00d4ff;text-decoration:none;transition:opacity .2s}
+    .card-read:hover{opacity:.65}
+    .empty{text-align:center;color:#4a5568;padding:64px 0;grid-column:1/-1}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="/index.html" class="logo">Web3<span>Legals</span></a>
-      <ul class="nav-links">
-        <li><a href="/index.html">Home</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/services.html">Services</a></li>
-        <li><a href="/blog/" class="active">Blog</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-      </ul>
-      <a href="/contact.html" class="cta-btn">Free Consultation</a>
-      <button class="mobile-menu-btn" aria-label="Toggle menu">&#9776;</button>
-    </div>
-  </nav>
+  <nav class="navbar"><div class="nav-container">
+    <a href="/index.html" class="logo">Web3<span>Legals</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li><li><a href="/about.html">About</a></li>
+      <li><a href="/services.html">Services</a></li><li><a href="/blog/" class="active">Blog</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <a href="/contact.html" class="cta-btn">Free Consultation</a>
+    <button class="mobile-menu-btn" aria-label="Toggle menu">&#9776;</button>
+  </div></nav>
   <div class="blog-hero">
     <div class="eyebrow">Legal Intelligence</div>
     <h1>Crypto &amp; Fintech <span>Law Blog</span></h1>
     <p class="sub">Original analysis on crypto regulation, fintech law, and Indian courts —
       by Rahul Pareek, Double Gold Medallist LLM, NLU India.</p>
-    <div class="pill">22 articles published</div>
+    <div class="pill">24 articles published</div>
   </div>
   <div class="filters">
       <button class="fbtn active" data-filter="all">All Articles</button>
@@ -93,6 +60,24 @@
       <button class="fbtn" data-filter="token">Token Law</button>
   </div>
   <div class="grid" id="grid">
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Catholic Leaders Join Growing Opposition to Crypto Market Structure Bill - PYMNTS.com</h3>
+          <p class="card-snippet">Catholic Leaders Join Growing Opposition to Crypto Market Structure Bill&nbsp;&nbsp;PYMNTS.com</p>
+          <div class="card-footer">
+            <span class="card-meta">June 24, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/catholic-leaders-join-growing-opposition-to-crypto-market-structure-bill---pymnt.html">Read →</a>
+          </div>
+        </div>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">What Happens to Bitcoin and Crypto If the CLARITY Act Misses Its Deadline - CCN.com</h3>
+          <p class="card-snippet">What Happens to Bitcoin and Crypto If the CLARITY Act Misses Its Deadline&nbsp;&nbsp;CCN.com</p>
+          <div class="card-footer">
+            <span class="card-meta">June 23, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/what-happens-to-bitcoin-and-crypto-if-the-clarity-act-misses-its-deadline---ccnc.html">Read →</a>
+          </div>
+        </div>
         <div class="card" data-cat="crypto">
           <div class="card-badge">⚖️ CRYPTO</div>
           <h3 class="card-title">Law enforcement groups warn Clarity Act could hinder crypto crime investigations - The Block</h3>
@@ -292,43 +277,33 @@
           </div>
         </div>
   </div>
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-brand">
-        <a href="/index.html" class="logo">Web3<span>Legals</span></a>
-        <p>India's leading legal firm for Web3, crypto, and fintech businesses.</p>
-      </div>
-      <div class="footer-links">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/index.html">Home</a></li>
-          <li><a href="/about.html">About</a></li>
-          <li><a href="/services.html">Services</a></li>
-          <li><a href="/blog/">Blog</a></li>
-          <li><a href="/contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div class="footer-contact">
-        <h4>Contact</h4>
-        <p>Email: rahul@web3legals.com</p>
-        <p>Web3Legals | New Delhi, India</p>
-      </div>
+  <footer class="footer"><div class="footer-container">
+    <div class="footer-brand">
+      <a href="/index.html" class="logo">Web3<span>Legals</span></a>
+      <p>India's leading legal firm for Web3, crypto, and fintech businesses.</p>
     </div>
-    <div class="footer-bottom">
-      <p>&copy; 2026 Web3Legals. All rights reserved.</p>
+    <div class="footer-links"><h4>Quick Links</h4>
+      <ul><li><a href="/index.html">Home</a></li><li><a href="/about.html">About</a></li>
+      <li><a href="/services.html">Services</a></li><li><a href="/blog/">Blog</a></li>
+      <li><a href="/contact.html">Contact</a></li></ul>
     </div>
+    <div class="footer-contact"><h4>Contact</h4>
+      <p>Email: rahul@web3legals.com</p><p>Web3Legals | New Delhi, India</p>
+    </div>
+  </div>
+  <div class="footer-bottom"><p>&copy; 2026 Web3Legals. All rights reserved.</p></div>
   </footer>
   <script>
-    (function() {
+    (function(){
       var btns=document.querySelectorAll('.fbtn');
       var cards=document.querySelectorAll('.card');
-      btns.forEach(function(btn) {
-        btn.addEventListener('click',function() {
-          btns.forEach(function(b) { b.classList.remove('active'); });
+      btns.forEach(function(btn){
+        btn.addEventListener('click',function(){
+          btns.forEach(function(b){b.classList.remove('active')});
           btn.classList.add('active');
           var f=btn.getAttribute('data-filter');
-          cards.forEach(function(card) {
-            card.classList.toggle('hidden', f!=='all' && card.getAttribute('data-cat')!==f);
+          cards.forEach(function(card){
+            card.classList.toggle('hidden',f!=='all'&&card.getAttribute('data-cat')!==f);
           });
         });
       });

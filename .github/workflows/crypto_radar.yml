@@ -29,8 +29,7 @@ jobs:
         run: |
           git config user.name "actions-user"
           git config user.email "actions@github.com"
-          git add blog/ blog.html || true
-          git add .seen_articles.json || true
+          git add blog/ articles.json .seen_articles.json || true
           if git diff --cached --quiet; then
             echo "Nothing new today."
           else

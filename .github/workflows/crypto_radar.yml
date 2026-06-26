@@ -1,0 +1,83 @@
+name: Crypto Radar — Auto Blog Publisher
+
+on:
+  schedule:
+    # Daily at 7:00 AM UTC
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Checkout with full history so git push works ──────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Set up Python ─────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── 3. Install dependencies ──────────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            google-generativeai \
+            newspaper3k \
+            lxml \
+            lxml_html_clean \
+            requests \
+            Pillow \
+            nltk
+
+          # Download required NLTK data for newspaper3k
+          python -c "
+          import nltk
+          nltk.download('punkt', quiet=True)
+          nltk.download('punkt_tab', quiet=True)
+          nltk.download('stopwords', quiet=True)
+          "
+
+      # ── 4. Run the script ────────────────────────────────────────────────
+      - name: Run Crypto Radar
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python .github/scripts/crypto_radar.py
+
+      # ── 5. Commit and push if anything changed ───────────────────────────
+      - name: Commit and push new articles
+        run: |
+          git config user.name  "Web3Legals Bot"
+          git config user.email "bot@web3legals.com"
+
+          git add \
+            blog/ \
+            .seen_articles.json \
+            .all_articles.json
+
+          # Only commit if there are staged changes
+          if git diff --cached --quiet; then
+            echo "No new articles — nothing to commit."
+          else
+            ARTICLE_COUNT=$(python -c "
+          import json, os
+          data = json.load(open('.all_articles.json')) if os.path.exists('.all_articles.json') else []
+          print(len(data))
+          ")
+            git commit -m "chore(blog): auto-publish — ${ARTICLE_COUNT} articles total [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+            git push
+            echo "Pushed successfully. Cloudflare Pages will deploy automatically."
+          fi

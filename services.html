@@ -1,187 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Services — Web3Legals | Crypto & Blockchain Legal Advisory</title>
-<meta name="description" content="Token structuring, DAO legal wrappers, KYC/AML compliance, smart contract review, and more. Web3-native legal services by Rahul Pareek.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Services — Web3Legals | Crypto & Blockchain Legal Advisory</title>
+  <meta name="description" content="Token structuring, DAO legal wrappers, KYC/AML compliance, smart contract review, and more. Web3-native legal services by Rahul Pareek."/>
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<nav class="nav" id="nav">
+
+<nav class="navbar">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <a href="index.html" class="logo">Web3<span>Legals</span></a>
     <ul class="nav-links">
-      <li><a href="index.html">Home</a></li><li><a href="services.html" class="active">Services</a></li>
-      <li><a href="about.html">About</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html" class="active">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog/index.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
     </ul>
-    <div class="nav-cta"><a href="contact.html" class="btn btn-gold">Book a Call</a></div>
-    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    <a href="contact.html" class="nav-cta">Book a Call</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a>
-  <a href="blog.html">Blog</a><a href="contact.html">Contact</a>
-  <a href="contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
+<div class="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="services.html">Services</a>
+  <a href="about.html">About</a>
+  <a href="blog/index.html">Blog</a>
+  <a href="contact.html">Contact</a>
+  <a href="contact.html" style="color:var(--accent);font-weight:600;">Book a Free Call →</a>
 </div>
 
-<section class="page-hero">
-  <div class="page-hero-bg"></div>
-  <div class="container" style="position:relative;z-index:2">
-    <div class="eyebrow">Our Services</div>
-    <h1>Legal services built<br>for Web3 natively</h1>
-    <p>Every service is designed from the ground up for the decentralized economy — not adapted from traditional corporate law templates.</p>
+<!-- HERO -->
+<section class="hero page-offset">
+  <div class="container">
+    <span class="eyebrow fade-up">Our Services</span>
+    <h1 class="fade-up fade-up-d1">Legal services built<br><span class="accent">for Web3 natively</span></h1>
+    <p class="hero-sub fade-up fade-up-d2">Every service is designed from the ground up for the decentralized economy — not adapted from traditional corporate law templates.</p>
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<!-- SERVICES DETAIL -->
+<section class="section">
   <div class="container">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:32px;">
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">⚖</div>
-        <div class="badge badge-gold" style="margin-bottom:16px">Core Service</div>
-        <h3>Token Legal Advisory & Classification</h3>
-        <p style="margin:12px 0">The most critical early-stage legal decision for any Web3 project. We evaluate your token under the Howey Test, Reves Test, and applicable MiCA frameworks.</p>
-        <ul class="service-features">
-          <li>Formal legal opinion on token classification</li>
-          <li>Howey Test & Reves Test analysis</li>
-          <li>Whitepaper legal audit & compliance review</li>
-          <li>SAFT/SAFE agreement drafting</li>
-          <li>Jurisdictional entity selection (UAE, Singapore, BVI, India)</li>
-          <li>SEC, MiCA & SEBI compliance roadmap</li>
-        </ul>
+      <!-- Token Advisory -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">⚖️</div>
+          <div class="service-tag">Core Service</div>
+          <h3 style="margin-top:8px;">Token Legal Advisory & Classification</h3>
+          <p style="font-size:.88rem;margin-top:10px;">The most critical early-stage legal decision for any Web3 project. We evaluate your token under the Howey Test, Reves Test, and applicable MiCA frameworks.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>Formal legal opinion on token classification</li>
+            <li>Howey Test & Reves Test analysis</li>
+            <li>Whitepaper legal audit & compliance review</li>
+            <li>SAFT/SAFE agreement drafting</li>
+            <li>Jurisdictional entity selection (UAE, Singapore, BVI, India)</li>
+            <li>SEC, MiCA & SEBI compliance roadmap</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Get Token Advisory →</a>
+        </div>
       </div>
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">🏛</div>
-        <div class="badge badge-teal" style="margin-bottom:16px">High Priority</div>
-        <h3>DAO Legal Wrappers & Governance</h3>
-        <p style="margin:12px 0">Protect your DAO contributors from personal liability. We structure legal wrappers and draft governance constitutions aligned with your on-chain rules.</p>
-        <ul class="service-features">
-          <li>Wyoming DAO LLC formation</li>
-          <li>Cayman Foundation setup</li>
-          <li>Marshall Islands DAO registration</li>
-          <li>DAO Constitution & governance documentation</li>
-          <li>Member liability framework</li>
-          <li>Treasury management legal structure</li>
-        </ul>
+      <!-- DAO -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">🏛️</div>
+          <div class="service-tag">High Priority</div>
+          <h3 style="margin-top:8px;">DAO Legal Wrappers & Governance</h3>
+          <p style="font-size:.88rem;margin-top:10px;">Protect your DAO contributors from personal liability. We structure legal wrappers and draft governance constitutions aligned with your on-chain rules.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>Wyoming DAO LLC formation</li>
+            <li>Cayman Foundation setup</li>
+            <li>Marshall Islands DAO registration</li>
+            <li>DAO Constitution & governance documentation</li>
+            <li>Member liability framework</li>
+            <li>Treasury management legal structure</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Structure Your DAO →</a>
+        </div>
       </div>
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">📄</div>
-        <div class="badge badge-white" style="margin-bottom:16px">Essential</div>
-        <h3>Web3 Terms, Privacy & Disclaimers</h3>
-        <p style="margin:12px 0">Generic SaaS templates are incompatible with Web3 risk profiles. We draft bespoke legal documents that actually protect your platform.</p>
-        <ul class="service-features">
-          <li>Web3-native Terms & Conditions</li>
-          <li>Privacy Policy (GDPR, PDPB compliant)</li>
-          <li>Smart contract risk disclaimers</li>
-          <li>Wallet interaction liability clauses</li>
-          <li>MiCA consumer protection disclosures</li>
-          <li>Jurisdictional geofencing language</li>
-        </ul>
+      <!-- Web3 Terms -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">📄</div>
+          <div class="service-tag">Essential</div>
+          <h3 style="margin-top:8px;">Web3 Terms, Privacy & Disclaimers</h3>
+          <p style="font-size:.88rem;margin-top:10px;">Generic SaaS templates are incompatible with Web3 risk profiles. We draft bespoke legal documents that actually protect your platform.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>Web3-native Terms & Conditions</li>
+            <li>Privacy Policy (GDPR, PDPB compliant)</li>
+            <li>Smart contract risk disclaimers</li>
+            <li>Wallet interaction liability clauses</li>
+            <li>MiCA consumer protection disclosures</li>
+            <li>Jurisdictional geofencing language</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Get Web3 Legal Docs →</a>
+        </div>
       </div>
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">🛡</div>
-        <div class="badge badge-gold" style="margin-bottom:16px">Compliance</div>
-        <h3>KYC/AML & Sanctions Compliance</h3>
-        <p style="margin:12px 0">The era of anonymous transactions is over. We design VASP-compliant KYC/AML frameworks that satisfy global regulators without killing user experience.</p>
-        <ul class="service-features">
-          <li>VASP compliance framework design</li>
-          <li>FATF Travel Rule implementation</li>
-          <li>OFAC & global sanctions screening setup</li>
-          <li>Transaction monitoring policy</li>
-          <li>AML risk assessment</li>
-          <li>India FIU-IND PMLA compliance</li>
-        </ul>
+      <!-- KYC/AML -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">🛡️</div>
+          <div class="service-tag">Compliance</div>
+          <h3 style="margin-top:8px;">KYC/AML & Sanctions Compliance</h3>
+          <p style="font-size:.88rem;margin-top:10px;">The era of anonymous transactions is over. We design VASP-compliant KYC/AML frameworks that satisfy global regulators without killing user experience.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>VASP compliance framework design</li>
+            <li>FATF Travel Rule implementation</li>
+            <li>OFAC & global sanctions screening setup</li>
+            <li>Transaction monitoring policy</li>
+            <li>AML risk assessment</li>
+            <li>India FIU-IND PMLA compliance</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Build AML Framework →</a>
+        </div>
       </div>
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">🤝</div>
-        <div class="badge badge-white" style="margin-bottom:16px">Foundational</div>
-        <h3>Founder & Contributor Agreements</h3>
-        <p style="margin:12px 0">One dispute between co-founders can kill a project. We lock in IP ownership, token vesting, and contributor terms before the first line of code is written.</p>
-        <ul class="service-features">
-          <li>Co-founder agreement drafting</li>
-          <li>IP Assignment Agreement</li>
-          <li>Token Vesting Agreement (4-year, 1-year cliff)</li>
-          <li>Contributor & advisor agreements</li>
-          <li>Non-disclosure agreements</li>
-          <li>Non-compete & non-solicitation clauses</li>
-        </ul>
+      <!-- Founder Agreements -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">🤝</div>
+          <div class="service-tag">Foundational</div>
+          <h3 style="margin-top:8px;">Founder & Contributor Agreements</h3>
+          <p style="font-size:.88rem;margin-top:10px;">One dispute between co-founders can kill a project. We lock in IP ownership, token vesting, and contributor terms before the first line of code is written.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>Co-founder agreement drafting</li>
+            <li>IP Assignment Agreement</li>
+            <li>Token Vesting Agreement (4-year, 1-year cliff)</li>
+            <li>Contributor & advisor agreements</li>
+            <li>Non-disclosure agreements</li>
+            <li>Non-compete & non-solicitation clauses</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Protect Your Team →</a>
+        </div>
       </div>
 
-      <div class="service-detail-card fade-up">
-        <div class="service-detail-icon">🌐</div>
-        <div class="badge badge-teal" style="margin-bottom:16px">Strategic</div>
-        <h3>Regulatory Strategy & Compliance</h3>
-        <p style="margin:12px 0">Navigate the global patchwork of crypto regulations with a clear, actionable roadmap tailored to your project's markets and user base.</p>
-        <ul class="service-features">
-          <li>Multi-jurisdictional compliance mapping</li>
-          <li>India crypto regulatory strategy (SEBI, RBI)</li>
-          <li>MiCA compliance for EU operations</li>
-          <li>Licensing requirements assessment</li>
-          <li>Regulatory change monitoring</li>
-          <li>Investor-ready legal documentation</li>
-        </ul>
+      <!-- Regulatory Strategy -->
+      <div class="card" data-animate style="display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;">
+        <div>
+          <div style="font-size:2.5rem;margin-bottom:12px;">🌐</div>
+          <div class="service-tag">Strategic</div>
+          <h3 style="margin-top:8px;">Regulatory Strategy & Compliance</h3>
+          <p style="font-size:.88rem;margin-top:10px;">Navigate the global patchwork of crypto regulations with a clear, actionable roadmap tailored to your project's markets and user base.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom:16px;color:var(--text3);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;">What's included</h4>
+          <ul class="service-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+            <li>Multi-jurisdictional compliance mapping</li>
+            <li>India crypto regulatory strategy (SEBI, RBI)</li>
+            <li>MiCA compliance for EU operations</li>
+            <li>Licensing requirements assessment</li>
+            <li>Regulatory change monitoring</li>
+            <li>Investor-ready legal documentation</li>
+          </ul>
+          <a href="contact.html" class="btn btn-primary" style="margin-top:24px;">Build Your Strategy →</a>
+        </div>
       </div>
 
     </div>
   </div>
 </section>
 
-<!-- PRICING NOTE -->
-<section class="section" style="padding-top:0">
+<!-- ENGAGEMENT MODEL -->
+<section class="section" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
   <div class="container">
-    <div class="cta-section fade-up">
-      <div class="eyebrow">Engagement Model</div>
+    <div class="section-header">
+      <span class="eyebrow">Engagement Model</span>
       <h2>Flexible legal counsel for every stage</h2>
       <p>Whether you're pre-launch or scaling globally, we tailor our engagement to your needs — from one-time legal opinions to ongoing retainer counsel.</p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:40px 0;text-align:left">
-        <div style="padding:28px;border-radius:var(--radius-lg);border:1px solid var(--border2);background:var(--glass)">
-          <h4 style="color:var(--gold);margin-bottom:8px">One-Time Advisory</h4>
-          <p style="font-size:0.875rem">Single legal opinion, document review, or strategy session. Ideal for founders who need a specific legal question answered fast.</p>
-        </div>
-        <div style="padding:28px;border-radius:var(--radius-lg);border:1px solid var(--gold);background:rgba(201,168,76,0.05)">
-          <h4 style="color:var(--gold);margin-bottom:8px">Project-Based</h4>
-          <p style="font-size:0.875rem">End-to-end legal setup for a specific milestone — token launch, DAO formation, or fundraising round. Fixed scope, fixed timeline.</p>
-          <div class="badge badge-gold" style="margin-top:12px">Most Popular</div>
-        </div>
-        <div style="padding:28px;border-radius:var(--radius-lg);border:1px solid var(--border2);background:var(--glass)">
-          <h4 style="color:var(--gold);margin-bottom:8px">Retainer Counsel</h4>
-          <p style="font-size:0.875rem">Ongoing legal partner for growing Web3 teams. Monthly retainer with priority access, regular strategy calls, and document reviews.</p>
-        </div>
+    </div>
+    <div class="grid-3">
+      <div class="card" data-animate style="text-align:center;">
+        <div style="font-size:1.8rem;margin-bottom:16px;">📋</div>
+        <h3>One-Time Advisory</h3>
+        <p style="margin-top:12px;font-size:.88rem;">Single legal opinion, document review, or strategy session. Ideal for founders who need a specific legal question answered fast.</p>
+        <a href="contact.html" class="btn btn-outline" style="margin-top:24px;width:100%;justify-content:center;">Get Started →</a>
       </div>
-      <div class="cta-actions">
-        <a href="contact.html" class="btn btn-gold">Book a Free Discovery Call</a>
+      <div class="card" data-animate style="text-align:center;">
+        <div style="font-size:1.8rem;margin-bottom:16px;">🚀</div>
+        <h3>Project-Based</h3>
+        <p style="margin-top:12px;font-size:.88rem;">End-to-end legal setup for a specific milestone — token launch, DAO formation, or fundraising round. Fixed scope, fixed timeline.</p>
+        <a href="contact.html" class="btn btn-outline" style="margin-top:24px;width:100%;justify-content:center;">Get Started →</a>
+      </div>
+      <div class="card" data-animate style="text-align:center;border-color:var(--accent-bd);position:relative;">
+        <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);">
+          <span class="badge">Most Popular</span>
+        </div>
+        <div style="font-size:1.8rem;margin-bottom:16px;margin-top:8px;">⚡</div>
+        <h3>Retainer Counsel</h3>
+        <p style="margin-top:12px;font-size:.88rem;">Ongoing legal partner for growing Web3 teams. Monthly retainer with priority access, regular strategy calls, and document reviews.</p>
+        <a href="contact.html" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center;">Get Started →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+  <div class="container">
+    <div class="cta-banner" data-animate>
+      <span class="eyebrow">Book a Free Discovery Call</span>
+      <h2>Start with a free 30-minute consultation</h2>
+      <p>No obligation. Strictly confidential. We'll assess your project's regulatory exposure and outline the right legal approach for your stage and jurisdiction.</p>
+      <div class="cta-buttons">
+        <a href="contact.html" class="btn btn-primary">Book a Free Discovery Call</a>
         <a href="about.html" class="btn btn-outline">About Rahul →</a>
       </div>
     </div>
   </div>
 </section>
 
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a href="index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
-        <p>Legal clarity for the decentralized world. Founded by Rahul Pareek, LLM — National Law University.</p>
+        <a href="index.html" class="logo">Web3<span>Legals</span></a>
+        <p>Legal clarity for the decentralized world. Regulatory compliance and digital asset legal advisory for blockchain founders globally.</p>
         <div class="footer-social">
-          <a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a>
-          <a href="#" class="social-link">𝕏</a>
+          <a href="https://linkedin.com/in/rahulpareek2302" target="_blank" rel="noopener" aria-label="LinkedIn">in</a>
+          <a href="https://twitter.com/web3legals" target="_blank" rel="noopener" aria-label="X/Twitter">𝕏</a>
         </div>
       </div>
-      <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="services.html">Token Advisory</a></li><li><a href="services.html">DAO Wrappers</a></li><li><a href="services.html">KYC/AML Compliance</a></li><li><a href="services.html">Founder Agreements</a></li></ul></div>
-      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Rahul</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="contact.html">Book a Call</a></li><li><span style="color:var(--gray)">Jodhpur, India</span></li></ul></div>
+      <div class="footer-col">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="services.html">Token Legal Advisory</a></li>
+          <li><a href="services.html">DAO Legal Structuring</a></li>
+          <li><a href="services.html">Smart Contract Review</a></li>
+          <li><a href="services.html">KYC/AML & VASP</a></li>
+          <li><a href="services.html">Founder Agreements</a></li>
+          <li><a href="services.html">Regulatory Strategy</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About Rahul</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Use</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li>
+          <li><a href="contact.html">Book a Call</a></li>
+          <li><a href="#">Jodhpur, India</a></li>
+          <li><a href="#">Working Globally</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-bottom"><span>© 2026 Web3Legals. Founded by <a href="about.html">Rahul Pareek</a>.</span><span>Disclaimer: Informational only — not legal advice.</span></div>
+    <div class="footer-bottom">
+      <p>© 2026 Web3Legals. All rights reserved. Founded by <a href="about.html">Rahul Pareek</a>. Disclaimer: Informational only — not legal advice.</p>
+      <p><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a></p>
+    </div>
   </div>
 </footer>
-<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+
+<button class="scroll-top" aria-label="Scroll to top">↑</button>
 <script src="js/main.js"></script>
 </body>
 </html>

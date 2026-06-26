@@ -3,7 +3,7 @@
 Web3Legals Crypto Legal Radar — Final Clean Version
 - Fetches from Google News RSS (free, no API key)
 - Saves articles to blog/ folder at repo root
-- Updates blog.html automatically
+- Updates blog/index.html automatically
 - Uses absolute CSS paths (/css/style.css)
 """
 
@@ -15,15 +15,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-# Script is at: /runner/work/repo/repo/.github/scripts/crypto_radar.py
-# Repo root is:  /runner/work/repo/repo/
 REPO_ROOT  = Path(__file__).resolve().parent.parent.parent
 BLOG_DIR   = REPO_ROOT / "blog"
 SEEN_FILE  = REPO_ROOT / ".seen_articles.json"
-BLOG_INDEX = REPO_ROOT / "blog.html"
+BLOG_INDEX = REPO_ROOT / "blog" / "index.html"
 
-print(f"REPO_ROOT: {REPO_ROOT}")
-print(f"BLOG_DIR:  {BLOG_DIR}")
+print(f"REPO_ROOT:  {REPO_ROOT}")
+print(f"BLOG_DIR:   {BLOG_DIR}")
+print(f"BLOG_INDEX: {BLOG_INDEX}")
 print(f"BLOG_INDEX exists: {BLOG_INDEX.exists()}")
 
 RSS_FEEDS = [
@@ -160,7 +159,7 @@ def build_article_html(article, slug):
       <li><a href="/index.html">Home</a></li>
       <li><a href="/services.html">Services</a></li>
       <li><a href="/about.html">About</a></li>
-      <li><a href="/blog.html" class="active">Blog</a></li>
+      <li><a href="/blog/" class="active">Blog</a></li>
       <li><a href="/contact.html">Contact</a></li>
     </ul>
     <div class="nav-cta"><a href="/contact.html" class="btn btn-gold">Book a Call</a></div>
@@ -169,14 +168,14 @@ def build_article_html(article, slug):
 </nav>
 <div class="mobile-menu" id="mobileMenu">
   <a href="/index.html">Home</a><a href="/services.html">Services</a>
-  <a href="/about.html">About</a><a href="/blog.html">Blog</a><a href="/contact.html">Contact</a>
+  <a href="/about.html">About</a><a href="/blog/">Blog</a><a href="/contact.html">Contact</a>
   <a href="/contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
 </div>
 
 <section class="page-hero">
   <div class="page-hero-bg"></div>
   <div class="container" style="position:relative;z-index:2">
-    <div class="eyebrow"><a href="/blog.html" style="color:inherit;text-decoration:none">← Back to Blog</a></div>
+    <div class="eyebrow"><a href="/blog/" style="color:inherit;text-decoration:none">← Back to Blog</a></div>
     <h1 style="font-size:clamp(1.6rem,4vw,2.4rem);max-width:800px;line-height:1.3">{title}</h1>
     <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:16px">
       <span class="badge {badge_cls}">{badge_lbl}</span>
@@ -207,7 +206,7 @@ def build_article_html(article, slug):
         </div>
       </div>
       <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border)">
-        <a href="/blog.html" class="btn" style="border:1px solid var(--border2)">← All Articles</a>
+        <a href="/blog/" class="btn" style="border:1px solid var(--border2)">← All Articles</a>
       </div>
     </div>
   </div>
@@ -222,7 +221,7 @@ def build_article_html(article, slug):
         <div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div>
       </div>
       <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="/services.html">Token Advisory</a></li><li><a href="/services.html">DAO Wrappers</a></li><li><a href="/services.html">KYC/AML</a></li></ul></div>
-      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="/about.html">About Rahul</a></li><li><a href="/blog.html">Blog</a></li><li><a href="/contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="/about.html">About Rahul</a></li><li><a href="/blog/">Blog</a></li><li><a href="/contact.html">Contact</a></li></ul></div>
       <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="/contact.html">Book a Call</a></li></ul></div>
     </div>
     <div class="footer-bottom">
@@ -245,23 +244,22 @@ def build_card_html(article, slug):
         <div class="blog-card-image">{emoji}</div>
         <div class="blog-card-body">
           <div class="blog-card-meta"><span class="badge {badge_cls}">{badge_lbl}</span><span>3 min read</span></div>
-          <h3><a href="/blog/{slug}.html">{article['title']}</a></h3>
+          <h3><a href="/blog/{slug}">{article['title']}</a></h3>
           <p>{snippet}</p>
-          <a href="/blog/{slug}.html" class="blog-read-more">Read article <span>→</span></a>
+          <a href="/blog/{slug}" class="blog-read-more">Read article <span>→</span></a>
         </div>
       </div>"""
 
 def update_blog_index(cards_html):
     if not BLOG_INDEX.exists():
-        print(f"  ⚠  blog.html not found at {BLOG_INDEX}")
+        print(f"  ⚠  blog/index.html not found at {BLOG_INDEX}")
         return
     content = BLOG_INDEX.read_text(encoding="utf-8")
     start_marker = '<div class="grid-3" id="cmsArticles"'
     start = content.find(start_marker)
     if start == -1:
-        print("  ⚠  #cmsArticles not found in blog.html")
+        print("  ⚠  #cmsArticles not found in blog/index.html")
         return
-    # Find closing </div> of cmsArticles
     depth, i = 0, start
     while i < len(content):
         if content[i:i+4] == "<div":
@@ -275,12 +273,11 @@ def update_blog_index(cards_html):
     new_block = f'<div class="grid-3" id="cmsArticles" style="margin-bottom:40px">\n{cards_html}\n    </div>'
     content = content[:start] + new_block + content[div_end:]
     BLOG_INDEX.write_text(content, encoding="utf-8")
-    print(f"  ✅ blog.html updated with {cards_html.count('blog-card')} new cards")
+    print(f"  ✅ blog/index.html updated with {cards_html.count('blog-card')} new cards")
 
 def main():
     print("🌐 Web3Legals — Crypto Legal Radar Starting...")
 
-    # Fix: if blog is a file not directory, remove it
     if BLOG_DIR.exists() and not BLOG_DIR.is_dir():
         BLOG_DIR.unlink()
         print("  🗑  Removed stale 'blog' file")
@@ -296,7 +293,6 @@ def main():
             if aid not in seen:
                 new_articles.append((aid, a))
 
-    # Deduplicate
     seen_titles, deduped = set(), []
     for aid, a in new_articles:
         key = slugify(a["title"])[:40]

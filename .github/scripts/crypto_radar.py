@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
 crypto_radar.py — Web3Legals Auto-Publishing Blog System
-Fetches crypto/fintech/India legal news, generates analysis via Gemini, publishes static HTML.
-Updated: uses google-genai SDK, retry-aware rate limiting, model fallback chain.
+Phase 1: Hybrid Cloudflare Architecture
+
+Flow:
+  1. Fetch 11 Google News RSS feeds
+  2. Check Cloudflare D1 (via Worker) → filter already-seen articles
+  3. Generate 400-word legal analysis via Cloudflare AI Gateway → Groq LLaMA 3.3 70B
+  4. Fallback chain: Groq → Gemini → structured snippet
+  5. Save article HTML to blog/
+  6. Rebuild blog/index.html (fully static)
+  7. Write metadata back to D1
+  8. git commit + push → Cloudflare Pages auto-deploys
 """
 
 import os
@@ -14,27 +23,25 @@ import textwrap
 from datetime import datetime, timezone
 from urllib.request import urlopen, Request
 from urllib.error import URLError
+import urllib.parse
 import xml.etree.ElementTree as ET
 
-from google import genai
+# ── Environment variables (all from GitHub Secrets) ──────────────────────────
 
-# ── Config ──────────────────────────────────────────────────────────────────
+GROQ_API_KEY      = os.environ.get("GROQ_API_KEY", "")
+CF_AI_GATEWAY_URL = os.environ.get("CF_AI_GATEWAY_URL", "").rstrip("/")
+CF_WORKER_URL     = os.environ.get("CF_WORKER_URL", "").rstrip("/")
+CF_WORKER_SECRET  = os.environ.get("CF_WORKER_SECRET", "")
 
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-
-# Model fallback chain — lite has higher free-tier quota
-GEMINI_MODELS = [
-    "gemini-2.0-flash-lite",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-]
+# ── Config ────────────────────────────────────────────────────────────────────
 
 MAX_ARTICLES   = 5
-DELAY_SECONDS  = 5   # base delay between calls
-MAX_RETRIES    = 3   # retries per article with back-off
-SEEN_FILE      = ".seen_articles.json"
-ALL_FILE       = ".all_articles.json"
+DELAY_SECONDS  = 5      # between Groq calls
+MAX_RETRIES    = 3
 BLOG_DIR       = "blog"
+
+GROQ_MODEL     = "llama-3.3-70b-versatile"
+GEMINI_MODEL   = "gemini-2.0-flash-lite"   # fallback only
 
 RSS_FEEDS = [
     ("crypto",      "https://news.google.com/rss/search?q=crypto+regulation+law&hl=en-US&gl=US&ceid=US:en"),
@@ -51,25 +58,15 @@ RSS_FEEDS = [
 ]
 
 CATEGORY_META = {
-    "crypto":      {"label": "Crypto Law",       "emoji": "⚖️",  "badge": "CRYPTO"},
-    "fintech":     {"label": "Fintech",           "emoji": "🏦",  "badge": "FINTECH"},
-    "india-legal": {"label": "India Courts",      "emoji": "🏛️",  "badge": "INDIA"},
-    "compliance":  {"label": "Compliance",        "emoji": "🔍",  "badge": "AML/KYC"},
-    "dao":         {"label": "DAO & Governance",  "emoji": "🗳️",  "badge": "DAO"},
-    "token":       {"label": "Token Law",         "emoji": "🪙",  "badge": "TOKEN"},
+    "crypto":      {"label": "Crypto Law",      "emoji": "⚖️",  "badge": "CRYPTO"},
+    "fintech":     {"label": "Fintech",          "emoji": "🏦",  "badge": "FINTECH"},
+    "india-legal": {"label": "India Courts",     "emoji": "🏛️",  "badge": "INDIA"},
+    "compliance":  {"label": "Compliance",       "emoji": "🔍",  "badge": "AML/KYC"},
+    "dao":         {"label": "DAO & Governance", "emoji": "🗳️",  "badge": "DAO"},
+    "token":       {"label": "Token Law",        "emoji": "🪙",  "badge": "TOKEN"},
 }
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-
-def load_json(path, default):
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return default
-
-def save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+# ── Utilities ─────────────────────────────────────────────────────────────────
 
 def article_id(url):
     return hashlib.md5(url.encode()).hexdigest()[:12]
@@ -79,13 +76,89 @@ def slugify(title):
     slug = re.sub(r"[\s_]+", "-", slug).strip("-")
     return slug[:80]
 
+def format_display_date(pubdate_str):
+    for fmt in [
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S GMT",
+        "%a, %d %b %Y %H:%M:%S +0000",
+    ]:
+        try:
+            dt = datetime.strptime(pubdate_str.strip(), fmt)
+            return dt.strftime("%B %d, %Y")
+        except Exception:
+            continue
+    return datetime.now(timezone.utc).strftime("%B %d, %Y")
+
+# ── Cloudflare D1 Bridge calls ────────────────────────────────────────────────
+
+def worker_request(method, path, body=None):
+    """Make an authenticated request to the Cloudflare Worker D1 bridge."""
+    url  = f"{CF_WORKER_URL}{path}"
+    data = json.dumps(body).encode() if body else None
+    req  = Request(
+        url,
+        data=data,
+        method=method,
+        headers={
+            "Authorization": f"Bearer {CF_WORKER_SECRET}",
+            "Content-Type":  "application/json",
+        },
+    )
+    try:
+        with urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as e:
+        print(f"  Worker error [{method} {path}]: {e}")
+        return None
+
+def d1_check_seen(aids):
+    """Returns set of AIDs already in D1."""
+    result = worker_request("POST", "/seen/check", {"aids": aids})
+    if result and "seen" in result:
+        return set(result["seen"])
+    print("  D1 check failed — treating all as unseen (safe fallback)")
+    return set()
+
+def d1_mark_seen(aids):
+    """Mark a list of AIDs as seen in D1."""
+    result = worker_request("POST", "/seen/add", {"aids": aids})
+    if result:
+        print(f"  D1: marked {result.get('added', 0)} articles as seen")
+    else:
+        print("  D1 mark-seen failed (non-critical)")
+
+def d1_upsert_articles(articles):
+    """Write article metadata to D1."""
+    result = worker_request("POST", "/articles/upsert", {"articles": articles})
+    if result:
+        print(f"  D1: upserted {result.get('upserted', 0)} articles")
+    else:
+        print("  D1 upsert failed (non-critical — HTML already saved)")
+
+def d1_get_all_articles():
+    """Fetch all article metadata from D1 for index rebuild."""
+    result = worker_request("GET", "/articles?limit=500", None)
+    if result and "articles" in result:
+        return result["articles"]
+    print("  D1 fetch failed — falling back to local .all_articles.json")
+    # Fallback to local file if D1 is unreachable
+    if os.path.exists(".all_articles.json"):
+        with open(".all_articles.json") as f:
+            return json.load(f)
+    return []
+
+# ── RSS Fetching ──────────────────────────────────────────────────────────────
+
 def fetch_rss(url, category):
     items = []
     try:
-        req = Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; Web3Legals/1.0)"})
+        req = Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; Web3Legals/1.0)"},
+        )
         with urlopen(req, timeout=15) as resp:
             xml_data = resp.read()
-        root = ET.fromstring(xml_data)
+        root    = ET.fromstring(xml_data)
         channel = root.find("channel")
         if channel is None:
             return items
@@ -98,7 +171,11 @@ def fetch_rss(url, category):
                 continue
             title   = (title_el.text or "").strip()
             link    = (link_el.text or "").strip()
-            snippet = re.sub(r"<[^>]+>", "", (desc_el.text or "") if desc_el is not None else "").strip()
+            snippet = re.sub(
+                r"<[^>]+>",
+                "",
+                (desc_el.text or "") if desc_el is not None else "",
+            ).strip()
             pubdate = (pubdate_el.text or "").strip() if pubdate_el is not None else ""
             if len(title) < 10:
                 continue
@@ -114,39 +191,26 @@ def fetch_rss(url, category):
     return items
 
 def fetch_article_text(url):
+    """Try full article text via newspaper3k; silent fail."""
     try:
         from newspaper import Article
         art = Article(url)
         art.download()
         art.parse()
-        text = art.text.strip()
+        text = (art.text or "").strip()
         return text[:3000] if text else ""
     except Exception:
         return ""
 
-def parse_retry_delay(error_str):
-    """Extract retry_delay seconds from Gemini 429 error message."""
-    # Look for 'seconds: N' pattern in error
-    m = re.search(r"retry_delay\s*\{[^}]*seconds:\s*(\d+)", str(error_str))
-    if m:
-        return int(m.group(1)) + 2  # add 2s buffer
-    # Look for bare 'Please retry in Ns'
-    m2 = re.search(r"retry in (\d+(?:\.\d+)?)", str(error_str))
-    if m2:
-        return int(float(m2.group(1))) + 2
-    return 60  # safe default
+# ── AI Generation via Cloudflare AI Gateway ───────────────────────────────────
 
-def generate_analysis(title, snippet, article_text, category):
-    """
-    Call Gemini with retry logic and model fallback.
-    Returns (text, success_bool).
-    """
+def build_prompt(title, snippet, article_text, category):
     cat_label = CATEGORY_META.get(category, {}).get("label", category)
     context   = article_text if article_text else snippet
-
-    prompt = textwrap.dedent(f"""
-        You are Rahul Pareek, founder of Web3Legals and a Double Gold Medallist LLM from National Law University India.
-        You are a leading expert in crypto law, fintech regulation, and Indian judiciary matters.
+    return textwrap.dedent(f"""
+        You are Rahul Pareek, founder of Web3Legals and a Double Gold Medallist LLM
+        from National Law University India. You are India's leading expert in crypto law,
+        fintech regulation, and Indian judiciary matters.
 
         Write a 400-word original legal analysis of the following news for Web3Legals.com.
         Category: {cat_label}
@@ -158,137 +222,247 @@ def generate_analysis(title, snippet, article_text, category):
 
         Requirements:
         - Write in first person as Rahul Pareek
-        - Open with a sharp legal observation, not a generic intro
-        - Cite relevant laws, regulations, or court precedents where applicable (SEC, CFTC, MiCA, RBI, SEBI, IPC, Indian IT Act, etc.)
-        - Explain the practical implications for founders, investors, and legal teams
+        - Open with a sharp, specific legal observation — not a generic intro
+        - Cite relevant laws, regulations, or court precedents where applicable
+          (SEC, CFTC, MiCA, RBI, SEBI, IPC, Indian IT Act, PMLA, FEMA, etc.)
+        - Explain practical implications for founders, investors, and compliance teams
         - End with a concrete takeaway or recommended action
-        - Exactly 400 words, no markdown, no bullet points, plain paragraphs only
+        - Exactly 400 words
+        - Plain paragraphs only — no markdown, no bullets, no headers
         - Do NOT repeat the news title verbatim in the first sentence
     """).strip()
 
-    client = genai.Client(api_key=GEMINI_API_KEY)
+def call_groq_via_gateway(prompt):
+    """
+    Call Groq LLaMA 3.3 70B through Cloudflare AI Gateway.
+    Gateway URL format: https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/groq
+    """
+    if not CF_AI_GATEWAY_URL or not GROQ_API_KEY:
+        raise ValueError("CF_AI_GATEWAY_URL or GROQ_API_KEY not set")
 
-    for model in GEMINI_MODELS:
-        for attempt in range(MAX_RETRIES):
-            try:
-                response = client.models.generate_content(
-                    model=model,
-                    contents=prompt,
-                )
-                text = response.text.strip()
-                if text:
-                    print(f"  Gemini [{model}]: {len(text)} chars")
-                    return text, True
-            except Exception as e:
-                err_str = str(e)
-                if "429" in err_str or "quota" in err_str.lower() or "RESOURCE_EXHAUSTED" in err_str:
-                    wait = parse_retry_delay(err_str)
-                    print(f"  Rate limited on {model} (attempt {attempt+1}/{MAX_RETRIES}). "
-                          f"Waiting {wait}s…")
-                    time.sleep(wait)
-                    if attempt == MAX_RETRIES - 1:
-                        print(f"  Exhausted retries on {model}, trying next model…")
-                        break  # try next model
-                else:
-                    print(f"  Gemini error [{model}]: {e}")
-                    break  # non-rate-limit error, skip to next model
+    # Cloudflare AI Gateway Groq endpoint
+    endpoint = f"{CF_AI_GATEWAY_URL}/groq/openai/v1/chat/completions"
 
-    return "", False  # all models failed
+    payload = json.dumps({
+        "model": GROQ_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 700,
+        "temperature": 0.7,
+    }).encode()
 
-def format_display_date(pubdate_str):
-    for fmt in [
-        "%a, %d %b %Y %H:%M:%S %z",
-        "%a, %d %b %Y %H:%M:%S GMT",
-        "%a, %d %b %Y %H:%M:%S +0000",
-    ]:
-        try:
-            dt = datetime.strptime(pubdate_str.strip(), fmt)
-            return dt.strftime("%B %d, %Y")
-        except Exception:
-            continue
-    return datetime.now(timezone.utc).strftime("%B %d, %Y")
-
-# ── HTML Templates ────────────────────────────────────────────────────────────
-
-def article_html(title, analysis, category, source_url, pub_display, slug):
-    cat = CATEGORY_META.get(category, CATEGORY_META["crypto"])
-    paragraphs = "\n".join(
-        f'      <p>{p.strip()}</p>'
-        for p in analysis.split("\n") if p.strip()
+    req = Request(
+        endpoint,
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type":  "application/json",
+        },
     )
+    with urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read().decode())
+
+    return data["choices"][0]["message"]["content"].strip()
+
+def call_gemini_fallback(prompt):
+    """
+    Fallback: call Gemini 2.0 Flash Lite through Cloudflare AI Gateway.
+    Gateway URL format: .../google-ai-studio
+    Requires GEMINI_API_KEY in environment.
+    """
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key or not CF_AI_GATEWAY_URL:
+        raise ValueError("GEMINI_API_KEY or CF_AI_GATEWAY_URL not set")
+
+    endpoint = (
+        f"{CF_AI_GATEWAY_URL}/google-ai-studio/v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent"
+    )
+
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": 700, "temperature": 0.7},
+    }).encode()
+
+    req = Request(
+        endpoint,
+        data=payload,
+        method="POST",
+        headers={
+            "x-goog-api-key": gemini_key,
+            "Content-Type":   "application/json",
+        },
+    )
+    with urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read().decode())
+
+    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+def parse_retry_delay(error_str):
+    m = re.search(r"retry in (\d+(?:\.\d+)?)", str(error_str), re.IGNORECASE)
+    if m:
+        return int(float(m.group(1))) + 2
+    m2 = re.search(r"\"retryDelay\":\s*\"(\d+)", str(error_str))
+    if m2:
+        return int(m2.group(1)) + 2
+    return 30
+
+def generate_analysis(title, snippet, article_text, category):
+    """
+    Try Groq via AI Gateway → Gemini fallback → structured snippet.
+    Returns (text, has_ai: bool)
+    """
+    prompt = build_prompt(title, snippet, article_text, category)
+
+    # ── Primary: Groq via Cloudflare AI Gateway ──────────────────────────
+    for attempt in range(MAX_RETRIES):
+        try:
+            text = call_groq_via_gateway(prompt)
+            if text:
+                print(f"  ✓ Groq LLaMA 3.3 70B via AI Gateway: {len(text)} chars")
+                return text, True
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "rate" in err.lower() or "quota" in err.lower():
+                wait = parse_retry_delay(err)
+                print(f"  Groq rate limited (attempt {attempt+1}/{MAX_RETRIES}). Waiting {wait}s…")
+                time.sleep(wait)
+            else:
+                print(f"  Groq error: {err[:120]}")
+                break
+
+    # ── Fallback: Gemini via Cloudflare AI Gateway ───────────────────────
+    print("  Trying Gemini fallback via AI Gateway…")
+    for attempt in range(MAX_RETRIES):
+        try:
+            text = call_gemini_fallback(prompt)
+            if text:
+                print(f"  ✓ Gemini fallback via AI Gateway: {len(text)} chars")
+                return text, True
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "quota" in err.lower():
+                wait = parse_retry_delay(err)
+                print(f"  Gemini rate limited (attempt {attempt+1}/{MAX_RETRIES}). Waiting {wait}s…")
+                time.sleep(wait)
+            else:
+                print(f"  Gemini error: {err[:120]}")
+                break
+
+    # ── Final fallback: structured snippet ───────────────────────────────
+    print("  All AI models failed — using structured fallback")
+    cat_label = CATEGORY_META.get(category, {}).get("label", category)
+    fallback = (
+        f"The {cat_label} space has seen a significant development: {title}. "
+        f"{snippet} "
+        f"As practitioners in this field, it is essential to recognise the regulatory "
+        f"implications of such developments. Legal teams advising clients in the "
+        f"{cat_label} sector must closely monitor evolving frameworks to ensure continued "
+        f"compliance. Founders and investors should seek immediate legal counsel to "
+        f"understand how this development may affect their operations, licensing "
+        f"obligations, and risk exposure. Web3Legals specialises in exactly this kind "
+        f"of cross-jurisdictional legal analysis. Reach out via the contact page for "
+        f"a free consultation tailored to your specific situation."
+    )
+    return fallback, False
+
+# ── HTML Generation ───────────────────────────────────────────────────────────
+
+def article_html(title, analysis, category, source_url, pub_display):
+    cat        = CATEGORY_META.get(category, CATEGORY_META["crypto"])
+    paragraphs = "\n".join(
+        f"      <p>{p.strip()}</p>"
+        for p in analysis.split("\n")
+        if p.strip()
+    )
+    safe_title = title.replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+    year       = datetime.now().year
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{title} | Web3Legals</title>
-  <meta name="description" content="{title[:155]}" />
+  <title>{safe_title} | Web3Legals</title>
+  <meta name="description" content="{safe_title[:155]}" />
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body {{ background: #0a0b0f; color: #d4d8e2; font-family: 'Inter', sans-serif; margin: 0; }}
-    .w3l-article-hero {{
-      background: linear-gradient(135deg, #0d1117 0%, #0f1923 50%, #0a0b0f 100%);
+    body {{ background:#0a0b0f; color:#d4d8e2; font-family:'Inter',sans-serif; margin:0; }}
+
+    /* ── Hero ── */
+    .art-hero {{
+      background: linear-gradient(135deg,#0d1117 0%,#0f1923 55%,#0a0b0f 100%);
       border-bottom: 1px solid #1e2535;
-      padding: 80px 24px 48px;
+      padding: 88px 24px 52px;
       text-align: center;
     }}
-    .w3l-article-hero .back-link {{
-      display: inline-flex; align-items: center; gap: 6px;
-      color: #00d4ff; text-decoration: none; font-size: 0.85rem;
-      font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
-      margin-bottom: 28px; transition: opacity .2s;
+    .art-hero .back {{
+      display:inline-flex; align-items:center; gap:6px;
+      color:#00d4ff; text-decoration:none; font-size:.82rem;
+      font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+      margin-bottom:28px; transition:opacity .2s;
     }}
-    .w3l-article-hero .back-link:hover {{ opacity: .7; }}
-    .w3l-article-hero .badge {{
-      display: inline-block; padding: 4px 12px; border-radius: 4px;
-      background: #00d4ff22; color: #00d4ff; font-size: 0.72rem;
-      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      border: 1px solid #00d4ff44; margin-bottom: 20px;
+    .art-hero .back:hover {{ opacity:.65; }}
+    .art-hero .badge {{
+      display:inline-block; padding:4px 13px; border-radius:4px;
+      background:#00d4ff1a; color:#00d4ff; font-size:.7rem;
+      font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+      border:1px solid #00d4ff40; margin-bottom:22px;
     }}
-    .w3l-article-hero h1 {{
-      font-size: clamp(1.5rem, 4vw, 2.4rem); font-weight: 700;
-      color: #f0f4ff; line-height: 1.3; max-width: 800px;
-      margin: 0 auto 20px; letter-spacing: -0.01em;
+    .art-hero h1 {{
+      font-size:clamp(1.45rem,4vw,2.35rem); font-weight:700;
+      color:#f0f4ff; line-height:1.3; max-width:820px;
+      margin:0 auto 18px; letter-spacing:-.015em;
     }}
-    .w3l-article-hero .meta {{ font-size: 0.85rem; color: #6b7a99; }}
-    .w3l-article-hero .meta span {{ margin: 0 8px; }}
-    .w3l-article-body {{
-      max-width: 760px; margin: 0 auto; padding: 56px 24px 80px;
+    .art-hero .meta {{ font-size:.82rem; color:#6b7a99; }}
+    .art-hero .meta span {{ margin:0 6px; }}
+
+    /* ── Body ── */
+    .art-body {{
+      max-width:760px; margin:0 auto; padding:52px 24px 72px;
     }}
-    .w3l-article-body p {{
-      font-size: 1.05rem; line-height: 1.85; color: #b8c0d4; margin: 0 0 22px;
+    .art-body p {{
+      font-size:1.05rem; line-height:1.9; color:#b8c0d4; margin:0 0 22px;
     }}
-    .w3l-article-body p:first-child::first-letter {{
-      font-size: 3.2em; font-weight: 700; color: #00d4ff;
-      float: left; line-height: 0.75; margin: 6px 12px 0 0;
+    .art-body p:first-child::first-letter {{
+      font-size:3.4em; font-weight:800; color:#00d4ff;
+      float:left; line-height:.72; margin:8px 12px 0 0;
+      font-family:'Georgia',serif;
     }}
-    .w3l-source-bar {{
-      max-width: 760px; margin: 0 auto 48px; padding: 24px 24px 0;
-      display: flex; align-items: center; gap: 12px;
-      border-top: 1px solid #1e2535;
+
+    /* ── Source bar ── */
+    .art-source {{
+      max-width:760px; margin:0 auto 40px;
+      padding:20px 24px 0; border-top:1px solid #1e2535;
+      display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap;
     }}
-    .w3l-source-bar span {{ font-size: 0.8rem; color: #6b7a99; }}
-    .w3l-source-bar a {{
-      color: #00d4ff; font-size: 0.8rem; text-decoration: none; word-break: break-all;
+    .art-source .lbl {{ font-size:.78rem; color:#6b7a99; white-space:nowrap; padding-top:2px; }}
+    .art-source a {{
+      color:#00d4ff; font-size:.78rem; text-decoration:none;
+      word-break:break-all;
     }}
-    .w3l-source-bar a:hover {{ text-decoration: underline; }}
-    .w3l-cta-bar {{
-      background: linear-gradient(135deg, #00d4ff11, #0066ff11);
-      border: 1px solid #00d4ff33; border-radius: 12px;
-      max-width: 760px; margin: 0 auto 80px; padding: 36px 32px; text-align: center;
+    .art-source a:hover {{ text-decoration:underline; }}
+
+    /* ── CTA ── */
+    .art-cta {{
+      background:linear-gradient(135deg,#00d4ff0d,#0066ff0d);
+      border:1px solid #00d4ff30; border-radius:12px;
+      max-width:760px; margin:0 auto 80px; padding:38px 32px;
+      text-align:center;
     }}
-    .w3l-cta-bar h3 {{ color: #f0f4ff; font-size: 1.2rem; margin: 0 0 8px; font-weight: 600; }}
-    .w3l-cta-bar p {{ color: #6b7a99; font-size: 0.9rem; margin: 0 0 20px; }}
-    .w3l-cta-bar a {{
-      display: inline-block; padding: 12px 28px; border-radius: 6px;
-      background: linear-gradient(135deg, #00d4ff, #0066ff);
-      color: #fff; font-weight: 600; text-decoration: none; font-size: 0.9rem;
-      transition: opacity .2s;
+    .art-cta h3 {{ color:#f0f4ff; font-size:1.2rem; margin:0 0 8px; font-weight:600; }}
+    .art-cta p  {{ color:#6b7a99; font-size:.88rem; margin:0 0 22px; }}
+    .art-cta a  {{
+      display:inline-block; padding:13px 30px; border-radius:6px;
+      background:linear-gradient(135deg,#00d4ff,#0066ff);
+      color:#fff; font-weight:600; text-decoration:none; font-size:.9rem;
+      transition:opacity .2s;
     }}
-    .w3l-cta-bar a:hover {{ opacity: .85; }}
+    .art-cta a:hover {{ opacity:.82; }}
   </style>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="nav-container">
       <a href="/index.html" class="logo">Web3<span>Legals</span></a>
@@ -304,10 +478,10 @@ def article_html(title, analysis, category, source_url, pub_display, slug):
     </div>
   </nav>
 
-  <div class="w3l-article-hero">
-    <a href="/blog/" class="back-link">← Back to Blog</a>
+  <div class="art-hero">
+    <a href="/blog/" class="back">← Back to Blog</a>
     <div class="badge">{cat['emoji']} {cat['badge']}</div>
-    <h1>{title}</h1>
+    <h1>{safe_title}</h1>
     <p class="meta">
       <span>By Rahul Pareek</span>·
       <span>{pub_display}</span>·
@@ -315,16 +489,18 @@ def article_html(title, analysis, category, source_url, pub_display, slug):
     </p>
   </div>
 
-  <div class="w3l-article-body">
+  <div class="art-body">
 {paragraphs}
   </div>
 
-  <div class="w3l-source-bar">
-    <span>Original source:</span>
-    <a href="{source_url}" target="_blank" rel="noopener noreferrer">{source_url[:90]}{"…" if len(source_url) > 90 else ""}</a>
+  <div class="art-source">
+    <span class="lbl">Original source:</span>
+    <a href="{source_url}" target="_blank" rel="noopener noreferrer">
+      {source_url[:100]}{"…" if len(source_url) > 100 else ""}
+    </a>
   </div>
 
-  <div class="w3l-cta-bar">
+  <div class="art-cta">
     <h3>Need Legal Clarity on This?</h3>
     <p>Get tailored advice from India's leading Web3 &amp; fintech legal expert.</p>
     <a href="/contact.html">Book a Free Consultation</a>
@@ -353,7 +529,7 @@ def article_html(title, analysis, category, source_url, pub_display, slug):
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; {datetime.now().year} Web3Legals. All rights reserved.</p>
+      <p>&copy; {year} Web3Legals. All rights reserved.</p>
     </div>
   </footer>
 
@@ -363,29 +539,34 @@ def article_html(title, analysis, category, source_url, pub_display, slug):
 """
 
 def blog_index_html(all_articles):
-    now_year = datetime.now().year
+    year  = datetime.now().year
+    total = len(all_articles)
 
-    all_cards = []
+    cards = []
     for art in all_articles:
         cat     = art.get("category", "crypto")
         meta    = CATEGORY_META.get(cat, CATEGORY_META["crypto"])
-        slug    = art["slug"]
-        title   = art["title"]
+        slug    = art.get("slug", "")
+        title   = art.get("title", "")
         snippet = (art.get("snippet") or "")[:160]
         pub     = art.get("pub_display", "")
-        ai_flag = "✦ AI Analysis" if art.get("has_ai") else "📰 News Brief"
-        card = f"""        <div class="w3l-card" data-cat="{cat}">
-          <div class="w3l-card-badge">{meta['emoji']} {meta['badge']}</div>
-          <h3 class="w3l-card-title">{title}</h3>
-          <p class="w3l-card-snippet">{snippet}{"…" if len(snippet) == 160 else ""}</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">{pub} &nbsp;·&nbsp; <em>{ai_flag}</em></span>
-            <a class="w3l-card-read" href="/blog/{slug}.html">Read →</a>
-          </div>
-        </div>"""
-        all_cards.append(card)
+        has_ai  = bool(art.get("has_ai") or art.get("has_ai") == 1)
+        ai_tag  = "✦ AI Analysis" if has_ai else "📰 News Brief"
 
-    filter_buttons = [
+        cards.append(f"""        <div class="card" data-cat="{cat}">
+          <div class="card-badge">{meta['emoji']} {meta['badge']}</div>
+          <h3 class="card-title">{title}</h3>
+          <p class="card-snippet">{snippet}{"…" if len(snippet)==160 else ""}</p>
+          <div class="card-footer">
+            <span class="card-meta">{pub} · <em>{ai_tag}</em></span>
+            <a class="card-read" href="/blog/{slug}.html">Read →</a>
+          </div>
+        </div>""")
+
+    cards_html = "\n".join(cards) if cards else \
+        '        <p class="empty">No articles yet — check back soon.</p>'
+
+    filter_btns = [
         ("all",         "All Articles"),
         ("crypto",      "Crypto Law"),
         ("fintech",     "Fintech"),
@@ -394,14 +575,11 @@ def blog_index_html(all_articles):
         ("compliance",  "Compliance"),
         ("token",       "Token Law"),
     ]
-
-    buttons_html   = "\n".join(
-        f'      <button class="w3l-filter-btn{" active" if k == "all" else ""}" data-filter="{k}">{label}</button>'
-        for k, label in filter_buttons
+    btns_html = "\n".join(
+        f'      <button class="fbtn{" active" if k=="all" else ""}" '
+        f'data-filter="{k}">{label}</button>'
+        for k, label in filter_btns
     )
-    cards_html = "\n".join(all_cards) if all_cards else \
-        '        <p class="w3l-empty">No articles yet — check back soon.</p>'
-    total = len(all_articles)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -412,79 +590,96 @@ def blog_index_html(all_articles):
   <meta name="description" content="Expert legal analysis on crypto regulation, fintech law, and Indian courts — by Rahul Pareek, Web3Legals." />
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body {{ background: #0a0b0f; color: #d4d8e2; font-family: 'Inter', sans-serif; margin: 0; }}
-    .w3l-blog-hero {{
-      background: linear-gradient(135deg, #0d1117 0%, #0f1923 60%, #0a0b0f 100%);
-      border-bottom: 1px solid #1e2535;
-      padding: 100px 24px 60px; text-align: center;
+    body {{ background:#0a0b0f; color:#d4d8e2; font-family:'Inter',sans-serif; margin:0; }}
+
+    .blog-hero {{
+      background:linear-gradient(135deg,#0d1117 0%,#0f1923 60%,#0a0b0f 100%);
+      border-bottom:1px solid #1e2535;
+      padding:100px 24px 60px; text-align:center;
     }}
-    .w3l-blog-hero .eyebrow {{
-      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #00d4ff; margin-bottom: 16px;
+    .blog-hero .eyebrow {{
+      font-size:.74rem; font-weight:700; letter-spacing:.16em;
+      text-transform:uppercase; color:#00d4ff; margin-bottom:14px;
     }}
-    .w3l-blog-hero h1 {{
-      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800;
-      color: #f0f4ff; margin: 0 0 16px; letter-spacing: -0.02em; line-height: 1.15;
+    .blog-hero h1 {{
+      font-size:clamp(1.9rem,5vw,3.1rem); font-weight:800;
+      color:#f0f4ff; margin:0 0 14px; letter-spacing:-.022em; line-height:1.15;
     }}
-    .w3l-blog-hero h1 span {{ color: #00d4ff; }}
-    .w3l-blog-hero p {{ font-size: 1.05rem; color: #6b7a99; max-width: 560px; margin: 0 auto; line-height: 1.7; }}
-    .w3l-blog-hero .count-pill {{
-      display: inline-block; margin-top: 20px; padding: 6px 16px;
-      border-radius: 20px; background: #00d4ff15; border: 1px solid #00d4ff33;
-      color: #00d4ff; font-size: 0.8rem; font-weight: 600;
+    .blog-hero h1 span {{ color:#00d4ff; }}
+    .blog-hero .sub {{
+      font-size:1rem; color:#6b7a99; max-width:540px;
+      margin:0 auto; line-height:1.7;
     }}
-    .w3l-filters {{
-      display: flex; flex-wrap: wrap; gap: 10px;
-      justify-content: center; padding: 36px 24px 0;
+    .blog-hero .pill {{
+      display:inline-block; margin-top:20px; padding:6px 18px;
+      border-radius:20px; background:#00d4ff12; border:1px solid #00d4ff30;
+      color:#00d4ff; font-size:.78rem; font-weight:600;
     }}
-    .w3l-filter-btn {{
-      padding: 8px 18px; border-radius: 6px; border: 1px solid #2a3245;
-      background: transparent; color: #8a94b0; cursor: pointer;
-      font-size: 0.82rem; font-weight: 500; transition: all .2s;
+
+    .filters {{
+      display:flex; flex-wrap:wrap; gap:10px;
+      justify-content:center; padding:36px 24px 0;
     }}
-    .w3l-filter-btn:hover, .w3l-filter-btn.active {{
-      background: #00d4ff15; border-color: #00d4ff55; color: #00d4ff;
+    .fbtn {{
+      padding:8px 18px; border-radius:6px; border:1px solid #2a3245;
+      background:transparent; color:#8a94b0; cursor:pointer;
+      font-size:.82rem; font-weight:500; transition:all .2s;
     }}
-    .w3l-grid {{
-      max-width: 1200px; margin: 40px auto 80px; padding: 0 24px;
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;
+    .fbtn:hover,.fbtn.active {{
+      background:#00d4ff12; border-color:#00d4ff50; color:#00d4ff;
     }}
-    .w3l-card {{
-      background: #0f1420; border: 1px solid #1e2535; border-radius: 10px;
-      padding: 28px; display: flex; flex-direction: column;
-      transition: border-color .2s, transform .2s;
+
+    .grid {{
+      max-width:1200px; margin:40px auto 80px; padding:0 24px;
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+      gap:24px;
     }}
-    .w3l-card:hover {{ border-color: #00d4ff44; transform: translateY(-2px); }}
-    .w3l-card.hidden {{ display: none; }}
-    .w3l-card-badge {{
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: #00d4ff; background: #00d4ff12; border: 1px solid #00d4ff33;
-      border-radius: 4px; padding: 3px 9px; display: inline-block;
-      width: fit-content; margin-bottom: 14px;
+    .card {{
+      background:#0f1420; border:1px solid #1e2535; border-radius:10px;
+      padding:26px; display:flex; flex-direction:column;
+      transition:border-color .2s,transform .2s;
     }}
-    .w3l-card-title {{
-      font-size: 1rem; font-weight: 600; color: #e8edf8;
-      line-height: 1.45; margin: 0 0 12px; flex-grow: 1;
+    .card:hover {{ border-color:#00d4ff40; transform:translateY(-3px); }}
+    .card.hidden {{ display:none; }}
+    .card-badge {{
+      font-size:.7rem; font-weight:700; letter-spacing:.11em;
+      text-transform:uppercase; color:#00d4ff;
+      background:#00d4ff10; border:1px solid #00d4ff30;
+      border-radius:4px; padding:3px 9px;
+      display:inline-block; width:fit-content; margin-bottom:14px;
     }}
-    .w3l-card-snippet {{ font-size: 0.87rem; color: #6b7a99; line-height: 1.6; margin: 0 0 20px; }}
-    .w3l-card-footer {{
-      display: flex; justify-content: space-between; align-items: center;
-      border-top: 1px solid #1e2535; padding-top: 16px; margin-top: auto;
+    .card-title {{
+      font-size:.97rem; font-weight:600; color:#e8edf8;
+      line-height:1.45; margin:0 0 12px; flex-grow:1;
     }}
-    .w3l-card-date {{ font-size: 0.75rem; color: #4a5568; }}
-    .w3l-card-date em {{ font-style: normal; color: #3a8a6a; }}
-    .w3l-card-read {{
-      font-size: 0.82rem; font-weight: 600; color: #00d4ff;
-      text-decoration: none; transition: opacity .2s;
+    .card-snippet {{
+      font-size:.85rem; color:#6b7a99; line-height:1.65; margin:0 0 18px;
     }}
-    .w3l-card-read:hover {{ opacity: .7; }}
-    .w3l-empty {{ text-align: center; color: #4a5568; padding: 60px 0; grid-column: 1/-1; }}
-    @media (max-width: 600px) {{
-      .w3l-grid {{ grid-template-columns: 1fr; }}
+    .card-footer {{
+      display:flex; justify-content:space-between; align-items:center;
+      border-top:1px solid #1e2535; padding-top:14px; margin-top:auto;
+    }}
+    .card-meta {{ font-size:.74rem; color:#4a5568; }}
+    .card-meta em {{ font-style:normal; color:#2e7d5e; }}
+    .card-read {{
+      font-size:.82rem; font-weight:600; color:#00d4ff;
+      text-decoration:none; transition:opacity .2s;
+    }}
+    .card-read:hover {{ opacity:.65; }}
+    .empty {{
+      text-align:center; color:#4a5568;
+      padding:64px 0; grid-column:1/-1;
+    }}
+
+    @media(max-width:600px) {{
+      .grid {{ grid-template-columns:1fr; }}
+      .filters {{ gap:8px; }}
+      .fbtn {{ font-size:.78rem; padding:7px 14px; }}
     }}
   </style>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="nav-container">
       <a href="/index.html" class="logo">Web3<span>Legals</span></a>
@@ -500,18 +695,19 @@ def blog_index_html(all_articles):
     </div>
   </nav>
 
-  <div class="w3l-blog-hero">
+  <div class="blog-hero">
     <div class="eyebrow">Legal Intelligence</div>
     <h1>Crypto &amp; Fintech <span>Law Blog</span></h1>
-    <p>Original analysis on crypto regulation, fintech law, and Indian courts — by Rahul Pareek, Double Gold Medallist LLM, NLU India.</p>
-    <div class="count-pill">{total} article{"s" if total != 1 else ""} published</div>
+    <p class="sub">Original analysis on crypto regulation, fintech law, and Indian courts —
+      by Rahul Pareek, Double Gold Medallist LLM, NLU India.</p>
+    <div class="pill">{total} article{"s" if total != 1 else ""} published</div>
   </div>
 
-  <div class="w3l-filters">
-{buttons_html}
+  <div class="filters">
+{btns_html}
   </div>
 
-  <div class="w3l-grid" id="w3l-grid">
+  <div class="grid" id="grid">
 {cards_html}
   </div>
 
@@ -538,21 +734,23 @@ def blog_index_html(all_articles):
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; {now_year} Web3Legals. All rights reserved.</p>
+      <p>&copy; {year} Web3Legals. All rights reserved.</p>
     </div>
   </footer>
 
   <script>
+    /* Pure static filter — no fetch, no external calls */
     (function() {{
-      var btns  = document.querySelectorAll('.w3l-filter-btn');
-      var cards = document.querySelectorAll('.w3l-card');
+      var btns  = document.querySelectorAll('.fbtn');
+      var cards = document.querySelectorAll('.card');
       btns.forEach(function(btn) {{
         btn.addEventListener('click', function() {{
           btns.forEach(function(b) {{ b.classList.remove('active'); }});
           btn.classList.add('active');
           var f = btn.getAttribute('data-filter');
           cards.forEach(function(card) {{
-            card.classList.toggle('hidden', f !== 'all' && card.getAttribute('data-cat') !== f);
+            card.classList.toggle('hidden',
+              f !== 'all' && card.getAttribute('data-cat') !== f);
           }});
         }});
       }});
@@ -563,81 +761,86 @@ def blog_index_html(all_articles):
 </html>
 """
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print("=== Web3Legals Crypto Radar ===")
-    print(f"Run time: {datetime.now(timezone.utc).isoformat()}")
-    print(f"Model chain: {' → '.join(GEMINI_MODELS)}")
+    print("=" * 60)
+    print("  Web3Legals Crypto Radar — Phase 1 Hybrid Architecture")
+    print("=" * 60)
+    print(f"  Run time : {datetime.now(timezone.utc).isoformat()}")
+    print(f"  AI route : Groq via Cloudflare AI Gateway → Gemini fallback")
+    print(f"  DB       : Cloudflare D1 via Worker bridge")
+    print(f"  Max      : {MAX_ARTICLES} articles/run")
+    print("=" * 60)
 
-    seen     = set(load_json(SEEN_FILE, []))
-    all_arts = load_json(ALL_FILE, [])
-    print(f"Previously seen: {len(seen)} | Stored articles: {len(all_arts)}")
-
+    # ── Step 1: Fetch all RSS feeds ──────────────────────────────────────
+    print("\n[1/5] Fetching RSS feeds…")
     candidates = []
     for category, feed_url in RSS_FEEDS:
-        print(f"  Fetching [{category}]: {feed_url[:60]}…")
+        print(f"  {category}: {feed_url[40:80]}…")
         items = fetch_rss(feed_url, category)
         for item in items:
-            aid = article_id(item["url"])
-            if aid not in seen:
-                item["aid"] = aid
-                candidates.append(item)
+            item["aid"] = article_id(item["url"])
+            candidates.append(item)
+    print(f"  Total raw items: {len(candidates)}")
 
-    seen_this_run = set()
+    # Deduplicate within this batch
+    seen_this_batch = set()
     unique = []
     for c in candidates:
-        if c["aid"] not in seen_this_run:
-            seen_this_run.add(c["aid"])
+        if c["aid"] not in seen_this_batch:
+            seen_this_batch.add(c["aid"])
             unique.append(c)
+    print(f"  Unique this batch: {len(unique)}")
 
-    print(f"New candidates: {len(unique)} | Processing: min({MAX_ARTICLES}, {len(unique)})")
-    to_process = unique[:MAX_ARTICLES]
+    # ── Step 2: Check D1 for already-seen articles ───────────────────────
+    print("\n[2/5] Checking Cloudflare D1 for seen articles…")
+    all_aids  = [c["aid"] for c in unique]
+    seen_aids = d1_check_seen(all_aids)
+    print(f"  Already seen: {len(seen_aids)}")
+
+    new_items = [c for c in unique if c["aid"] not in seen_aids]
+    print(f"  New articles : {len(new_items)}")
+
+    to_process = new_items[:MAX_ARTICLES]
+    print(f"  Processing   : {len(to_process)}")
+
+    if not to_process:
+        print("\nNo new articles today. Exiting.")
+        return
+
+    # ── Step 3: Generate articles ─────────────────────────────────────────
+    print("\n[3/5] Generating articles…")
     os.makedirs(BLOG_DIR, exist_ok=True)
-    new_count = 0
+    new_metadata = []
 
     for i, art in enumerate(to_process):
-        print(f"\n[{i+1}/{len(to_process)}] {art['title'][:70]}")
+        print(f"\n  [{i+1}/{len(to_process)}] {art['title'][:65]}…")
 
-        article_text = fetch_article_text(art["url"])
-        if article_text:
-            print(f"  Full text: {len(article_text)} chars")
+        # Try to get full article text
+        art_text = fetch_article_text(art["url"])
+        if art_text:
+            print(f"    Full text: {len(art_text)} chars")
         else:
-            print("  Using RSS snippet")
+            print("    Using RSS snippet as context")
 
+        # Generate via AI Gateway
         analysis, has_ai = generate_analysis(
-            art["title"], art["snippet"], article_text, art["category"]
+            art["title"], art["snippet"], art_text, art["category"]
         )
-
-        if not has_ai:
-            print("  All Gemini models failed — using structured fallback")
-            analysis = (
-                f"The following development has emerged in the {CATEGORY_META.get(art['category'], {}).get('label', art['category'])} space: "
-                f"{art['title']}. {art['snippet']} "
-                "This warrants careful attention from legal practitioners, founders, and compliance teams. "
-                "The regulatory landscape continues to evolve rapidly, and stakeholders must stay abreast of "
-                "such developments to ensure continued compliance. "
-                "Web3Legals monitors these developments closely and can provide tailored legal guidance. "
-                "Reach out via our contact page for a free consultation on how this may impact your operations."
-            )
 
         slug        = slugify(art["title"])
         pub_display = format_display_date(art.get("pubdate", ""))
 
-        html = article_html(
-            title       = art["title"],
-            analysis    = analysis,
-            category    = art["category"],
-            source_url  = art["url"],
-            pub_display = pub_display,
-            slug        = slug,
-        )
+        # Save HTML file
+        html     = article_html(art["title"], analysis, art["category"],
+                                art["url"], pub_display)
         out_path = os.path.join(BLOG_DIR, f"{slug}.html")
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(html)
-        print(f"  Saved: {out_path}")
+        print(f"    Saved: {out_path} ({'AI' if has_ai else 'fallback'})")
 
-        all_arts.insert(0, {
+        new_metadata.append({
             "aid":         art["aid"],
             "title":       art["title"],
             "slug":        slug,
@@ -648,24 +851,35 @@ def main():
             "has_ai":      has_ai,
             "generated":   datetime.now(timezone.utc).isoformat(),
         })
-        seen.add(art["aid"])
-        new_count += 1
 
         if i < len(to_process) - 1:
-            print(f"  Delay {DELAY_SECONDS}s…")
+            print(f"    Waiting {DELAY_SECONDS}s…")
             time.sleep(DELAY_SECONDS)
 
-    print(f"\nNew articles: {new_count}")
+    # ── Step 4: Update D1 ─────────────────────────────────────────────────
+    print("\n[4/5] Updating Cloudflare D1…")
+    d1_mark_seen([m["aid"] for m in new_metadata])
+    d1_upsert_articles(new_metadata)
 
+    # Also keep a local backup in .all_articles.json for safety
+    all_arts = d1_get_all_articles()
+    with open(".all_articles.json", "w", encoding="utf-8") as f:
+        json.dump(all_arts, f, indent=2, ensure_ascii=False)
+    print(f"  Local backup: .all_articles.json ({len(all_arts)} articles)")
+
+    # ── Step 5: Rebuild blog/index.html ──────────────────────────────────
+    print("\n[5/5] Rebuilding blog/index.html…")
     index_html = blog_index_html(all_arts)
     index_path = os.path.join(BLOG_DIR, "index.html")
     with open(index_path, "w", encoding="utf-8") as f:
         f.write(index_html)
-    print(f"Rebuilt: {index_path} ({len(all_arts)} total)")
+    print(f"  Rebuilt: {index_path} ({len(all_arts)} total articles)")
 
-    save_json(SEEN_FILE, list(seen))
-    save_json(ALL_FILE, all_arts)
-    print("State saved. === Done ===")
+    print("\n" + "=" * 60)
+    print(f"  Done! {len(new_metadata)} new articles published.")
+    print(f"  Total in blog: {len(all_arts)}")
+    print("  git commit + push will trigger Cloudflare Pages deploy.")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()

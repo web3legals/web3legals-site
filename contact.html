@@ -1,147 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Web3Legals | Book a Free Legal Consultation</title>
-<meta name="description" content="Book a free 30-minute Legal Clarity Call with Rahul Pareek, founder of Web3Legals. Get expert Web3 legal advice with no obligation.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact — Web3Legals | Book a Free Legal Consultation</title>
+  <meta name="description" content="Book a free 30-minute regulatory risk assessment with Rahul Pareek. No obligation, strictly confidential."/>
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<nav class="nav" id="nav">
+
+<nav class="navbar">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <a href="index.html" class="logo">Web3<span>Legals</span></a>
     <ul class="nav-links">
-      <li><a href="index.html">Home</a></li><li><a href="services.html">Services</a></li>
-      <li><a href="about.html">About</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html" class="active">Contact</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="blog/index.html">Blog</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
     </ul>
-    <div class="nav-cta"><a href="contact.html" class="btn btn-gold">Book a Call</a></div>
-    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    <a href="contact.html" class="nav-cta">Book a Call</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.html">Home</a><a href="services.html">Services</a><a href="about.html">About</a>
-  <a href="blog.html">Blog</a><a href="contact.html">Contact</a>
-  <a href="contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
+<div class="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="services.html">Services</a>
+  <a href="about.html">About</a>
+  <a href="blog/index.html">Blog</a>
+  <a href="contact.html">Contact</a>
 </div>
 
-<section class="page-hero">
-  <div class="page-hero-bg"></div>
-  <div class="container" style="position:relative;z-index:2">
-    <div class="eyebrow">Get in Touch</div>
-    <h1>Book a Free Legal Clarity Call</h1>
-    <p>30 minutes. No obligation. Walk away with a clear understanding of your legal exposure and what to do about it.</p>
+<!-- HERO -->
+<section class="hero page-offset">
+  <div class="container">
+    <span class="eyebrow fade-up">Get In Touch</span>
+    <h1 class="fade-up fade-up-d1">Book a Free<br><span class="accent">Legal Clarity Call</span></h1>
+    <p class="hero-sub fade-up fade-up-d2">A complimentary 30-minute Regulatory Risk Assessment. We'll evaluate your project's legal exposure and outline the right compliance approach — no obligation, strictly confidential.</p>
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<!-- CONTACT SECTION -->
+<section class="section">
   <div class="container">
-    <div class="grid-2" style="gap:48px;align-items:start">
+    <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:64px;align-items:start;">
 
-      <!-- FORM -->
-      <div class="contact-form-wrap fade-up">
-        <h3 style="margin-bottom:8px">Send a message</h3>
-        <p style="font-size:0.875rem;margin-bottom:32px">Fill in your details and I'll get back to you within 24 hours.</p>
-        <form id="contactForm">
-          <div class="form-2col">
-            <div class="form-group">
-              <label for="fname">First Name</label>
-              <input type="text" id="fname" placeholder="Rahul" required>
-            </div>
-            <div class="form-group">
-              <label for="lname">Last Name</label>
-              <input type="text" id="lname" placeholder="Pareek" required>
+      <!-- Left: info -->
+      <div data-animate>
+        <h2 style="margin-bottom:20px;">What to expect</h2>
+        <div style="display:flex;flex-direction:column;gap:20px;margin-bottom:40px;">
+          <div style="display:flex;gap:16px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent-bd);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.85rem;font-weight:700;flex-shrink:0;">1</div>
+            <div>
+              <h4>Fill in the form</h4>
+              <p style="font-size:.86rem;margin-top:4px;">Tell us about your project, your regulatory concerns, and what you need help with.</p>
             </div>
           </div>
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" placeholder="you@yourproject.com" required>
+          <div style="display:flex;gap:16px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent-bd);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.85rem;font-weight:700;flex-shrink:0;">2</div>
+            <div>
+              <h4>Receive a response within 24 hours</h4>
+              <p style="font-size:.86rem;margin-top:4px;">Rahul will personally review your message and respond with next steps or schedule a call.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent-bd);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.85rem;font-weight:700;flex-shrink:0;">3</div>
+            <div>
+              <h4>30-minute consultation</h4>
+              <p style="font-size:.86rem;margin-top:4px;">A focused session covering your specific regulatory exposure and a clear action plan.</p>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" style="margin-bottom:28px;"/>
+
+        <h4 style="margin-bottom:16px;">Direct contact</h4>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <a href="mailto:rahul@web3legals.com" style="display:flex;align-items:center;gap:12px;color:var(--text2);font-size:.9rem;transition:color var(--transition);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">
+            <span style="font-size:1.1rem;">✉️</span> rahul@web3legals.com
+          </a>
+          <a href="https://linkedin.com/in/rahulpareek2302" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;color:var(--text2);font-size:.9rem;transition:color var(--transition);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">
+            <span style="font-size:1.1rem;">💼</span> linkedin.com/in/rahulpareek2302
+          </a>
+          <span style="display:flex;align-items:center;gap:12px;color:var(--text2);font-size:.9rem;">
+            <span style="font-size:1.1rem;">📍</span> Jodhpur, Rajasthan, India — Working Globally
+          </span>
+        </div>
+
+        <hr class="divider" style="margin:28px 0;"/>
+
+        <div class="card" style="background:var(--accent-bg);border-color:var(--accent-bd);">
+          <p style="font-size:.84rem;color:var(--text2);line-height:1.7;">
+            <strong style="color:var(--heading);">Confidentiality:</strong> All information shared is treated with strict professional confidentiality. Consultation does not create an attorney-client relationship until a formal engagement letter is signed.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: form -->
+      <div class="card" data-animate style="padding:40px;">
+        <h3 style="margin-bottom:28px;">Send a message</h3>
+        <form id="contact-form" style="display:flex;flex-direction:column;gap:20px;" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required/>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" name="email" placeholder="you@company.com" required/>
+            </div>
           </div>
           <div class="form-group">
-            <label for="project">Project / Company Name</label>
-            <input type="text" id="project" placeholder="MyDAO / Web3 Startup">
+            <label for="project">Project / Company</label>
+            <input type="text" id="project" name="project" placeholder="Project name or company"/>
           </div>
           <div class="form-group">
-            <label for="service">What do you need help with?</label>
-            <select id="service">
-              <option value="">Select a service…</option>
-              <option>Token Classification & Legal Opinion</option>
-              <option>DAO Legal Wrapper</option>
-              <option>Web3 Terms & Conditions</option>
-              <option>KYC/AML Compliance Framework</option>
+            <label for="service">Service Needed *</label>
+            <select id="service" name="service" required>
+              <option value="" disabled selected>Select a service…</option>
+              <option>Token Legal Advisory & Classification</option>
+              <option>DAO Legal Structuring & Governance</option>
+              <option>Web3 Terms, Privacy & Disclaimers</option>
+              <option>KYC/AML & VASP Compliance</option>
               <option>Founder & Contributor Agreements</option>
-              <option>Regulatory Strategy</option>
-              <option>Smart Contract Review</option>
-              <option>General Web3 Legal Advice</option>
+              <option>Cross-Border Regulatory Strategy</option>
+              <option>General Legal Consultation</option>
+              <option>Other</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="message">Tell me about your project</label>
-            <textarea id="message" placeholder="What are you building? What stage are you at? What's your main legal concern right now?"></textarea>
+            <label for="jurisdiction">Primary Jurisdiction</label>
+            <select id="jurisdiction" name="jurisdiction">
+              <option value="" disabled selected>Where is your project based?</option>
+              <option>India</option>
+              <option>UAE / Dubai</option>
+              <option>Singapore</option>
+              <option>Cayman Islands</option>
+              <option>BVI</option>
+              <option>USA</option>
+              <option>European Union</option>
+              <option>Other / Multiple</option>
+            </select>
           </div>
-          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">Send Message →</button>
+          <div class="form-group">
+            <label for="message">Tell us about your project *</label>
+            <textarea id="message" name="message" placeholder="Describe your project, the regulatory concern you're facing, and what kind of legal support you need…" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:15px;">
+            Send Message →
+          </button>
+          <p style="font-size:.76rem;color:var(--text4);text-align:center;">We respond within 24 hours. Strictly confidential.</p>
         </form>
       </div>
 
-      <!-- INFO -->
-      <div class="fade-up">
-        <div class="eyebrow">Contact Details</div>
-        <h3 style="margin-bottom:24px">Reach out directly</h3>
-        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:40px">
-          <div class="contact-info-card">
-            <div class="contact-icon">📧</div>
-            <div class="contact-icon-text">
-              <h4>Email</h4>
-              <p><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></p>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <div class="contact-icon">💼</div>
-            <div class="contact-icon-text">
-              <h4>LinkedIn</h4>
-              <p><a href="https://linkedin.com/in/rahulpareek2302" target="_blank">linkedin.com/in/rahulpareek2302</a></p>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <div class="contact-icon">📍</div>
-            <div class="contact-icon-text">
-              <h4>Location</h4>
-              <p style="color:var(--gray)">Jodhpur, Rajasthan, India<br>Working with clients globally</p>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <div class="contact-icon">🕐</div>
-            <div class="contact-icon-text">
-              <h4>Response Time</h4>
-              <p style="color:var(--gray)">Within 24 hours on business days</p>
-            </div>
-          </div>
-        </div>
+    </div>
+  </div>
+</section>
 
-        <!-- FAQ -->
-        <div class="eyebrow">FAQs</div>
-        <h3 style="margin:16px 0 24px">Common questions</h3>
-        <div>
-          <div class="faq-item">
-            <button class="faq-question">Is the first call really free? <span class="faq-icon">+</span></button>
-            <div class="faq-answer">Yes — the 30-minute Legal Clarity Call is completely free and carries no obligation. It's designed to help you understand your legal position and decide if working together makes sense.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-question">Do you work with projects outside India? <span class="faq-icon">+</span></button>
-            <div class="faq-answer">Absolutely. While based in India, I work with Web3 founders and startups globally — including clients in UAE, Singapore, UK, US, and across Europe. Most work is done remotely.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-question">What stage should I be at to contact you? <span class="faq-icon">+</span></button>
-            <div class="faq-answer">Any stage — the earlier the better. Pre-token, pre-launch projects benefit the most from legal advice, but I also work with projects that are already live and need to fix their legal foundation.</div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-question">How are your fees structured? <span class="faq-icon">+</span></button>
-            <div class="faq-answer">Fees depend on the scope of work — one-time advisory, project-based, or ongoing retainer. We discuss this on the discovery call. No surprises, no hidden costs.</div>
-          </div>
-        </div>
+<!-- FAQ -->
+<section class="section" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <span class="eyebrow">FAQ</span>
+      <h2>Common questions</h2>
+    </div>
+    <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">
+      <div class="card" data-animate>
+        <h4>Is the initial consultation really free?</h4>
+        <p style="font-size:.88rem;margin-top:8px;">Yes. The first 30-minute regulatory risk assessment is complimentary. There is no obligation to engage further services.</p>
       </div>
-
+      <div class="card" data-animate>
+        <h4>Do you work with projects outside India?</h4>
+        <p style="font-size:.88rem;margin-top:8px;">Yes. We advise clients across India, UAE, Singapore, the Cayman Islands, BVI, the USA, and EU. Our practice is globally oriented by design.</p>
+      </div>
+      <div class="card" data-animate>
+        <h4>How quickly can I get a legal opinion?</h4>
+        <p style="font-size:.88rem;margin-top:8px;">For urgent matters, we can often turn around a preliminary opinion within 48–72 hours. Standard timelines depend on scope and complexity.</p>
+      </div>
+      <div class="card" data-animate>
+        <h4>Do you work on retainer?</h4>
+        <p style="font-size:.88rem;margin-top:8px;">Yes. For growing Web3 teams, a monthly retainer arrangement provides ongoing access, priority response, and continuous compliance monitoring.</p>
+      </div>
+      <div class="card" data-animate>
+        <h4>What information should I prepare before the call?</h4>
+        <p style="font-size:.88rem;margin-top:8px;">A brief overview of your project, your token model (if applicable), your target markets and user base, and any specific regulatory concerns or deadlines you're facing.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -149,15 +194,49 @@
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-brand"><a href="index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a><p>Legal clarity for the decentralized world.</p><div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div></div>
-      <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="services.html">Token Advisory</a></li><li><a href="services.html">DAO Wrappers</a></li><li><a href="services.html">KYC/AML</a></li></ul></div>
-      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Rahul</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="contact.html">Book a Call</a></li><li><span style="color:var(--gray)">Jodhpur, India</span></li></ul></div>
+      <div class="footer-brand">
+        <a href="index.html" class="logo">Web3<span>Legals</span></a>
+        <p>Legal clarity for the decentralized world. Founded by Rahul Pareek, LLM — National Law University India.</p>
+        <div class="footer-social">
+          <a href="https://linkedin.com/in/rahulpareek2302" target="_blank" rel="noopener" aria-label="LinkedIn">in</a>
+          <a href="https://twitter.com/web3legals" target="_blank" rel="noopener" aria-label="X/Twitter">𝕏</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="services.html">Token Legal Advisory</a></li>
+          <li><a href="services.html">DAO Legal Structuring</a></li>
+          <li><a href="services.html">KYC/AML & VASP</a></li>
+          <li><a href="services.html">Founder Agreements</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About Rahul</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li>
+          <li><a href="contact.html">Book a Call</a></li>
+          <li><a href="#">Jodhpur, India</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-bottom"><span>© 2026 Web3Legals. Founded by <a href="about.html">Rahul Pareek</a>.</span><span>Disclaimer: Informational only — not legal advice.</span></div>
+    <div class="footer-bottom">
+      <p>© 2026 Web3Legals. All rights reserved. Disclaimer: Informational only — not legal advice.</p>
+      <p><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a></p>
+    </div>
   </div>
 </footer>
-<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+
+<button class="scroll-top" aria-label="Scroll to top">↑</button>
 <script src="js/main.js"></script>
 </body>
 </html>

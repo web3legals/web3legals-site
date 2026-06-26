@@ -1,9 +1,9 @@
-name: Crypto Radar — Auto Blog Publisher
+name: Crypto Radar — Phase 1 Hybrid (Cloudflare AI Gateway + D1)
 
 on:
   schedule:
     - cron: "0 7 * * *"   # Daily 7:00 AM UTC
-  workflow_dispatch:        # Manual trigger from Actions UI
+  workflow_dispatch:        # Manual trigger from GitHub Actions UI
 
 permissions:
   contents: write
@@ -11,25 +11,27 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 45    # Extra time for retry back-offs
+    timeout-minutes: 30
 
     steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # ── 2. Python setup ───────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # ── 3. Install dependencies ───────────────────────────────────────────
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install \
-            google-genai \
             newspaper3k \
             lxml \
             lxml_html_clean \
@@ -37,39 +39,54 @@ jobs:
             Pillow \
             nltk
 
-          # NLTK data for newspaper3k tokenisation
+          # NLTK data required by newspaper3k
           python -c "
           import nltk
-          nltk.download('punkt',      quiet=True)
-          nltk.download('punkt_tab',  quiet=True)
-          nltk.download('stopwords',  quiet=True)
+          nltk.download('punkt',     quiet=True)
+          nltk.download('punkt_tab', quiet=True)
+          nltk.download('stopwords', quiet=True)
           "
 
+      # ── 4. Run Crypto Radar ───────────────────────────────────────────────
       - name: Run Crypto Radar
         env:
+          # Cloudflare AI Gateway (routes to Groq primary + Gemini fallback)
+          CF_AI_GATEWAY_URL: ${{ secrets.CF_AI_GATEWAY_URL }}
+
+          # Groq API key (stored safely IN Cloudflare AI Gateway config,
+          # but also needed here for the Authorization header)
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+          # Cloudflare Worker D1 bridge
+          CF_WORKER_URL:    ${{ secrets.CF_WORKER_URL }}
+          CF_WORKER_SECRET: ${{ secrets.CF_WORKER_SECRET }}
+
+          # Optional Gemini fallback (can be empty if not available)
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
         run: |
           python .github/scripts/crypto_radar.py
 
+      # ── 5. Commit and push ────────────────────────────────────────────────
       - name: Commit and push new articles
         run: |
           git config user.name  "Web3Legals Bot"
           git config user.email "bot@web3legals.com"
 
-          git add \
-            blog/ \
-            .seen_articles.json \
-            .all_articles.json
+          # Stage blog HTML + local backup json
+          git add blog/ .all_articles.json || true
 
           if git diff --cached --quiet; then
-            echo "No new articles — nothing to commit."
+            echo "✓ No new articles today — nothing to commit."
           else
-            ARTICLE_COUNT=$(python -c "
+            # Count total articles from backup
+            TOTAL=$(python -c "
           import json, os
-          data = json.load(open('.all_articles.json')) if os.path.exists('.all_articles.json') else []
-          print(len(data))
-          ")
-            git commit -m "chore(blog): auto-publish — ${ARTICLE_COUNT} articles [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          d = json.load(open('.all_articles.json')) if os.path.exists('.all_articles.json') else []
+          print(len(d))
+          " 2>/dev/null || echo "?")
+
+            git commit -m "blog: auto-publish — ${TOTAL} total articles [$(date -u '+%Y-%m-%d %H:%M UTC')]"
             git push
-            echo "Pushed. Cloudflare Pages will deploy automatically."
+            echo "✓ Pushed to GitHub. Cloudflare Pages deploying…"
           fi

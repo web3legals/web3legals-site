@@ -8,81 +8,56 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     body { background:#0a0b0f; color:#d4d8e2; font-family:'Inter',sans-serif; margin:0; }
-
-    /* ── Hero ── */
     .art-hero {
-      background: linear-gradient(135deg,#0d1117 0%,#0f1923 55%,#0a0b0f 100%);
-      border-bottom: 1px solid #1e2535;
-      padding: 88px 24px 52px;
-      text-align: center;
+      background:linear-gradient(135deg,#0d1117 0%,#0f1923 55%,#0a0b0f 100%);
+      border-bottom:1px solid #1e2535; padding:88px 24px 52px; text-align:center;
     }
     .art-hero .back {
-      display:inline-flex; align-items:center; gap:6px;
-      color:#00d4ff; text-decoration:none; font-size:.82rem;
-      font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-      margin-bottom:28px; transition:opacity .2s;
+      display:inline-flex; align-items:center; gap:6px; color:#00d4ff;
+      text-decoration:none; font-size:.82rem; font-weight:600;
+      letter-spacing:.06em; text-transform:uppercase; margin-bottom:28px; transition:opacity .2s;
     }
     .art-hero .back:hover { opacity:.65; }
     .art-hero .badge {
       display:inline-block; padding:4px 13px; border-radius:4px;
-      background:#00d4ff1a; color:#00d4ff; font-size:.7rem;
-      font-weight:700; letter-spacing:.12em; text-transform:uppercase;
-      border:1px solid #00d4ff40; margin-bottom:22px;
+      background:#00d4ff1a; color:#00d4ff; font-size:.7rem; font-weight:700;
+      letter-spacing:.12em; text-transform:uppercase; border:1px solid #00d4ff40; margin-bottom:22px;
     }
     .art-hero h1 {
-      font-size:clamp(1.45rem,4vw,2.35rem); font-weight:700;
-      color:#f0f4ff; line-height:1.3; max-width:820px;
-      margin:0 auto 18px; letter-spacing:-.015em;
+      font-size:clamp(1.45rem,4vw,2.35rem); font-weight:700; color:#f0f4ff;
+      line-height:1.3; max-width:820px; margin:0 auto 18px; letter-spacing:-.015em;
     }
     .art-hero .meta { font-size:.82rem; color:#6b7a99; }
     .art-hero .meta span { margin:0 6px; }
-
-    /* ── Body ── */
-    .art-body {
-      max-width:760px; margin:0 auto; padding:52px 24px 72px;
-    }
-    .art-body p {
-      font-size:1.05rem; line-height:1.9; color:#b8c0d4; margin:0 0 22px;
-    }
+    .art-body { max-width:760px; margin:0 auto; padding:52px 24px 72px; }
+    .art-body p { font-size:1.05rem; line-height:1.9; color:#b8c0d4; margin:0 0 22px; }
     .art-body p:first-child::first-letter {
       font-size:3.4em; font-weight:800; color:#00d4ff;
-      float:left; line-height:.72; margin:8px 12px 0 0;
-      font-family:'Georgia',serif;
+      float:left; line-height:.72; margin:8px 12px 0 0; font-family:'Georgia',serif;
     }
-
-    /* ── Source bar ── */
     .art-source {
-      max-width:760px; margin:0 auto 40px;
-      padding:20px 24px 0; border-top:1px solid #1e2535;
-      display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap;
+      max-width:760px; margin:0 auto 40px; padding:20px 24px 0;
+      border-top:1px solid #1e2535; display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap;
     }
     .art-source .lbl { font-size:.78rem; color:#6b7a99; white-space:nowrap; padding-top:2px; }
-    .art-source a {
-      color:#00d4ff; font-size:.78rem; text-decoration:none;
-      word-break:break-all;
-    }
+    .art-source a { color:#00d4ff; font-size:.78rem; text-decoration:none; word-break:break-all; }
     .art-source a:hover { text-decoration:underline; }
-
-    /* ── CTA ── */
     .art-cta {
       background:linear-gradient(135deg,#00d4ff0d,#0066ff0d);
       border:1px solid #00d4ff30; border-radius:12px;
-      max-width:760px; margin:0 auto 80px; padding:38px 32px;
-      text-align:center;
+      max-width:760px; margin:0 auto 80px; padding:38px 32px; text-align:center;
     }
     .art-cta h3 { color:#f0f4ff; font-size:1.2rem; margin:0 0 8px; font-weight:600; }
     .art-cta p  { color:#6b7a99; font-size:.88rem; margin:0 0 22px; }
     .art-cta a  {
       display:inline-block; padding:13px 30px; border-radius:6px;
       background:linear-gradient(135deg,#00d4ff,#0066ff);
-      color:#fff; font-weight:600; text-decoration:none; font-size:.9rem;
-      transition:opacity .2s;
+      color:#fff; font-weight:600; text-decoration:none; font-size:.9rem; transition:opacity .2s;
     }
     .art-cta a:hover { opacity:.82; }
   </style>
 </head>
 <body>
-
   <nav class="navbar">
     <div class="nav-container">
       <a href="/index.html" class="logo">Web3<span>Legals</span></a>
@@ -97,7 +72,6 @@
       <button class="mobile-menu-btn" aria-label="Toggle menu">&#9776;</button>
     </div>
   </nav>
-
   <div class="art-hero">
     <a href="/blog/" class="back">← Back to Blog</a>
     <div class="badge">⚖️ CRYPTO</div>
@@ -108,24 +82,20 @@
       <span>Crypto Law</span>
     </p>
   </div>
-
   <div class="art-body">
-      <p>The Crypto Law space has seen a significant development: The CLARITY Act’s real obstacle is not crypto. It is Trump’s crypto business - crypto.news. The CLARITY Act’s real obstacle is not crypto. It is Trump’s crypto business&nbsp;&nbsp;crypto.news As practitioners in this field, it is essential to recognise the regulatory implications of such developments. Legal teams advising clients in the Crypto Law sector must closely monitor evolving frameworks to ensure continued compliance. Founders and investors should seek immediate legal counsel to understand how this development may affect their operations, licensing obligations, and risk exposure. Web3Legals specialises in exactly this kind of cross-jurisdictional legal analysis. Reach out via the contact page for a free consultation tailored to your specific situation.</p>
+      <p>The Crypto Law space continues to evolve rapidly, and this latest development demands attention: The CLARITY Act’s real obstacle is not crypto. It is Trump’s crypto business - crypto.news. The CLARITY Act’s real obstacle is not crypto. It is Trump’s crypto business&nbsp;&nbsp;crypto.news From a legal standpoint, practitioners advising clients in the Crypto Law sector must closely monitor such regulatory shifts to ensure continued compliance with applicable frameworks including PMLA, FEMA, RBI guidelines, and international standards such as FATF recommendations. Founders and investors should seek immediate legal counsel to understand how this development may affect their operations, licensing obligations, and risk exposure. Web3Legals specialises in cross-jurisdictional legal analysis for exactly these scenarios. Reach out via our contact page for a free consultation tailored to your specific situation.</p>
   </div>
-
   <div class="art-source">
     <span class="lbl">Original source:</span>
     <a href="https://news.google.com/rss/articles/CBMie0FVX3lxTE4xWnJyajJWUmp2UEczdHBvVEE5X0o5RllOeEQtd3h1NWlwT0dRT0RGVThMaW5CeTB1R3ZQc0ZZbXdrcnJZX3BfU1M1SExOZDhMdEZBdndNN2xHX0ZqN1FkVHEtYmQ2RWZ0eEltcWp3THA5dFhBUE5LOWV3Zw?oc=5" target="_blank" rel="noopener noreferrer">
       https://news.google.com/rss/articles/CBMie0FVX3lxTE4xWnJyajJWUmp2UEczdHBvVEE5X0o5RllOeEQtd3h1NWlwT0d…
     </a>
   </div>
-
   <div class="art-cta">
     <h3>Need Legal Clarity on This?</h3>
     <p>Get tailored advice from India's leading Web3 &amp; fintech legal expert.</p>
     <a href="/contact.html">Book a Free Consultation</a>
   </div>
-
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-brand">
@@ -152,7 +122,6 @@
       <p>&copy; 2026 Web3Legals. All rights reserved.</p>
     </div>
   </footer>
-
   <script src="/js/main.js"></script>
 </body>
 </html>

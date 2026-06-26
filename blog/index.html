@@ -7,79 +7,96 @@
   <meta name="description" content="Expert legal analysis on crypto regulation, fintech law, and Indian courts — by Rahul Pareek, Web3Legals." />
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body { background: #0a0b0f; color: #d4d8e2; font-family: 'Inter', sans-serif; margin: 0; }
-    .w3l-blog-hero {
-      background: linear-gradient(135deg, #0d1117 0%, #0f1923 60%, #0a0b0f 100%);
-      border-bottom: 1px solid #1e2535;
-      padding: 100px 24px 60px; text-align: center;
+    body { background:#0a0b0f; color:#d4d8e2; font-family:'Inter',sans-serif; margin:0; }
+
+    .blog-hero {
+      background:linear-gradient(135deg,#0d1117 0%,#0f1923 60%,#0a0b0f 100%);
+      border-bottom:1px solid #1e2535;
+      padding:100px 24px 60px; text-align:center;
     }
-    .w3l-blog-hero .eyebrow {
-      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #00d4ff; margin-bottom: 16px;
+    .blog-hero .eyebrow {
+      font-size:.74rem; font-weight:700; letter-spacing:.16em;
+      text-transform:uppercase; color:#00d4ff; margin-bottom:14px;
     }
-    .w3l-blog-hero h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800;
-      color: #f0f4ff; margin: 0 0 16px; letter-spacing: -0.02em; line-height: 1.15;
+    .blog-hero h1 {
+      font-size:clamp(1.9rem,5vw,3.1rem); font-weight:800;
+      color:#f0f4ff; margin:0 0 14px; letter-spacing:-.022em; line-height:1.15;
     }
-    .w3l-blog-hero h1 span { color: #00d4ff; }
-    .w3l-blog-hero p { font-size: 1.05rem; color: #6b7a99; max-width: 560px; margin: 0 auto; line-height: 1.7; }
-    .w3l-blog-hero .count-pill {
-      display: inline-block; margin-top: 20px; padding: 6px 16px;
-      border-radius: 20px; background: #00d4ff15; border: 1px solid #00d4ff33;
-      color: #00d4ff; font-size: 0.8rem; font-weight: 600;
+    .blog-hero h1 span { color:#00d4ff; }
+    .blog-hero .sub {
+      font-size:1rem; color:#6b7a99; max-width:540px;
+      margin:0 auto; line-height:1.7;
     }
-    .w3l-filters {
-      display: flex; flex-wrap: wrap; gap: 10px;
-      justify-content: center; padding: 36px 24px 0;
+    .blog-hero .pill {
+      display:inline-block; margin-top:20px; padding:6px 18px;
+      border-radius:20px; background:#00d4ff12; border:1px solid #00d4ff30;
+      color:#00d4ff; font-size:.78rem; font-weight:600;
     }
-    .w3l-filter-btn {
-      padding: 8px 18px; border-radius: 6px; border: 1px solid #2a3245;
-      background: transparent; color: #8a94b0; cursor: pointer;
-      font-size: 0.82rem; font-weight: 500; transition: all .2s;
+
+    .filters {
+      display:flex; flex-wrap:wrap; gap:10px;
+      justify-content:center; padding:36px 24px 0;
     }
-    .w3l-filter-btn:hover, .w3l-filter-btn.active {
-      background: #00d4ff15; border-color: #00d4ff55; color: #00d4ff;
+    .fbtn {
+      padding:8px 18px; border-radius:6px; border:1px solid #2a3245;
+      background:transparent; color:#8a94b0; cursor:pointer;
+      font-size:.82rem; font-weight:500; transition:all .2s;
     }
-    .w3l-grid {
-      max-width: 1200px; margin: 40px auto 80px; padding: 0 24px;
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;
+    .fbtn:hover,.fbtn.active {
+      background:#00d4ff12; border-color:#00d4ff50; color:#00d4ff;
     }
-    .w3l-card {
-      background: #0f1420; border: 1px solid #1e2535; border-radius: 10px;
-      padding: 28px; display: flex; flex-direction: column;
-      transition: border-color .2s, transform .2s;
+
+    .grid {
+      max-width:1200px; margin:40px auto 80px; padding:0 24px;
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+      gap:24px;
     }
-    .w3l-card:hover { border-color: #00d4ff44; transform: translateY(-2px); }
-    .w3l-card.hidden { display: none; }
-    .w3l-card-badge {
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: #00d4ff; background: #00d4ff12; border: 1px solid #00d4ff33;
-      border-radius: 4px; padding: 3px 9px; display: inline-block;
-      width: fit-content; margin-bottom: 14px;
+    .card {
+      background:#0f1420; border:1px solid #1e2535; border-radius:10px;
+      padding:26px; display:flex; flex-direction:column;
+      transition:border-color .2s,transform .2s;
     }
-    .w3l-card-title {
-      font-size: 1rem; font-weight: 600; color: #e8edf8;
-      line-height: 1.45; margin: 0 0 12px; flex-grow: 1;
+    .card:hover { border-color:#00d4ff40; transform:translateY(-3px); }
+    .card.hidden { display:none; }
+    .card-badge {
+      font-size:.7rem; font-weight:700; letter-spacing:.11em;
+      text-transform:uppercase; color:#00d4ff;
+      background:#00d4ff10; border:1px solid #00d4ff30;
+      border-radius:4px; padding:3px 9px;
+      display:inline-block; width:fit-content; margin-bottom:14px;
     }
-    .w3l-card-snippet { font-size: 0.87rem; color: #6b7a99; line-height: 1.6; margin: 0 0 20px; }
-    .w3l-card-footer {
-      display: flex; justify-content: space-between; align-items: center;
-      border-top: 1px solid #1e2535; padding-top: 16px; margin-top: auto;
+    .card-title {
+      font-size:.97rem; font-weight:600; color:#e8edf8;
+      line-height:1.45; margin:0 0 12px; flex-grow:1;
     }
-    .w3l-card-date { font-size: 0.75rem; color: #4a5568; }
-    .w3l-card-date em { font-style: normal; color: #3a8a6a; }
-    .w3l-card-read {
-      font-size: 0.82rem; font-weight: 600; color: #00d4ff;
-      text-decoration: none; transition: opacity .2s;
+    .card-snippet {
+      font-size:.85rem; color:#6b7a99; line-height:1.65; margin:0 0 18px;
     }
-    .w3l-card-read:hover { opacity: .7; }
-    .w3l-empty { text-align: center; color: #4a5568; padding: 60px 0; grid-column: 1/-1; }
-    @media (max-width: 600px) {
-      .w3l-grid { grid-template-columns: 1fr; }
+    .card-footer {
+      display:flex; justify-content:space-between; align-items:center;
+      border-top:1px solid #1e2535; padding-top:14px; margin-top:auto;
+    }
+    .card-meta { font-size:.74rem; color:#4a5568; }
+    .card-meta em { font-style:normal; color:#2e7d5e; }
+    .card-read {
+      font-size:.82rem; font-weight:600; color:#00d4ff;
+      text-decoration:none; transition:opacity .2s;
+    }
+    .card-read:hover { opacity:.65; }
+    .empty {
+      text-align:center; color:#4a5568;
+      padding:64px 0; grid-column:1/-1;
+    }
+
+    @media(max-width:600px) {
+      .grid { grid-template-columns:1fr; }
+      .filters { gap:8px; }
+      .fbtn { font-size:.78rem; padding:7px 14px; }
     }
   </style>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="nav-container">
       <a href="/index.html" class="logo">Web3<span>Legals</span></a>
@@ -95,175 +112,176 @@
     </div>
   </nav>
 
-  <div class="w3l-blog-hero">
+  <div class="blog-hero">
     <div class="eyebrow">Legal Intelligence</div>
     <h1>Crypto &amp; Fintech <span>Law Blog</span></h1>
-    <p>Original analysis on crypto regulation, fintech law, and Indian courts — by Rahul Pareek, Double Gold Medallist LLM, NLU India.</p>
-    <div class="count-pill">17 articles published</div>
+    <p class="sub">Original analysis on crypto regulation, fintech law, and Indian courts —
+      by Rahul Pareek, Double Gold Medallist LLM, NLU India.</p>
+    <div class="pill">17 articles published</div>
   </div>
 
-  <div class="w3l-filters">
-      <button class="w3l-filter-btn active" data-filter="all">All Articles</button>
-      <button class="w3l-filter-btn" data-filter="crypto">Crypto Law</button>
-      <button class="w3l-filter-btn" data-filter="fintech">Fintech</button>
-      <button class="w3l-filter-btn" data-filter="india-legal">India Courts</button>
-      <button class="w3l-filter-btn" data-filter="dao">DAO & Governance</button>
-      <button class="w3l-filter-btn" data-filter="compliance">Compliance</button>
-      <button class="w3l-filter-btn" data-filter="token">Token Law</button>
+  <div class="filters">
+      <button class="fbtn active" data-filter="all">All Articles</button>
+      <button class="fbtn" data-filter="crypto">Crypto Law</button>
+      <button class="fbtn" data-filter="fintech">Fintech</button>
+      <button class="fbtn" data-filter="india-legal">India Courts</button>
+      <button class="fbtn" data-filter="dao">DAO & Governance</button>
+      <button class="fbtn" data-filter="compliance">Compliance</button>
+      <button class="fbtn" data-filter="token">Token Law</button>
   </div>
 
-  <div class="w3l-grid" id="w3l-grid">
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Final UK Crypto Rules Are Expected in 2026 Following Extensive Consultations - Skadden, Arps, Slate, Meagher & Flom LLP</h3>
-          <p class="w3l-card-snippet">Final UK Crypto Rules Are Expected in 2026 Following Extensive Consultations&nbsp;&nbsp;Skadden, Arps, Slate, Meagher & Flom LLP</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">April 08, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/final-uk-crypto-rules-are-expected-in-2026-following-extensive-consultations---s.html">Read →</a>
+  <div class="grid" id="grid">
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Final UK Crypto Rules Are Expected in 2026 Following Extensive Consultations - Skadden, Arps, Slate, Meagher & Flom LLP</h3>
+          <p class="card-snippet">Final UK Crypto Rules Are Expected in 2026 Following Extensive Consultations&nbsp;&nbsp;Skadden, Arps, Slate, Meagher & Flom LLP</p>
+          <div class="card-footer">
+            <span class="card-meta">April 08, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/final-uk-crypto-rules-are-expected-in-2026-following-extensive-consultations---s.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Crypto industry scores win as Clarity Act regulation bill clears Senate hurdle - CNBC</h3>
-          <p class="w3l-card-snippet">Crypto industry scores win as Clarity Act regulation bill clears Senate hurdle&nbsp;&nbsp;CNBC</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">May 14, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/crypto-industry-scores-win-as-clarity-act-regulation-bill-clears-senate-hurdle--.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Crypto industry scores win as Clarity Act regulation bill clears Senate hurdle - CNBC</h3>
+          <p class="card-snippet">Crypto industry scores win as Clarity Act regulation bill clears Senate hurdle&nbsp;&nbsp;CNBC</p>
+          <div class="card-footer">
+            <span class="card-meta">May 14, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/crypto-industry-scores-win-as-clarity-act-regulation-bill-clears-senate-hurdle--.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">SEC Clarifies Crypto Asset Regulation Under Federal Securities Laws - Dentons</h3>
-          <p class="w3l-card-snippet">SEC Clarifies Crypto Asset Regulation Under Federal Securities Laws&nbsp;&nbsp;Dentons</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">March 18, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/sec-clarifies-crypto-asset-regulation-under-federal-securities-laws---dentons.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">SEC Clarifies Crypto Asset Regulation Under Federal Securities Laws - Dentons</h3>
+          <p class="card-snippet">SEC Clarifies Crypto Asset Regulation Under Federal Securities Laws&nbsp;&nbsp;Dentons</p>
+          <div class="card-footer">
+            <span class="card-meta">March 18, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/sec-clarifies-crypto-asset-regulation-under-federal-securities-laws---dentons.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Big banks’ gloves come off in their fight with crypto - CNN</h3>
-          <p class="w3l-card-snippet">Big banks’ gloves come off in their fight with crypto&nbsp;&nbsp;CNN</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 05, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/big-banks-gloves-come-off-in-their-fight-with-crypto---cnn.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Big banks’ gloves come off in their fight with crypto - CNN</h3>
+          <p class="card-snippet">Big banks’ gloves come off in their fight with crypto&nbsp;&nbsp;CNN</p>
+          <div class="card-footer">
+            <span class="card-meta">June 05, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/big-banks-gloves-come-off-in-their-fight-with-crypto---cnn.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Cryptocurrency regulation: U.S. laws and global developments - Britannica</h3>
-          <p class="w3l-card-snippet">Cryptocurrency regulation: U.S. laws and global developments&nbsp;&nbsp;Britannica</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 12, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/cryptocurrency-regulation-us-laws-and-global-developments---britannica.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Cryptocurrency regulation: U.S. laws and global developments - Britannica</h3>
+          <p class="card-snippet">Cryptocurrency regulation: U.S. laws and global developments&nbsp;&nbsp;Britannica</p>
+          <div class="card-footer">
+            <span class="card-meta">June 12, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/cryptocurrency-regulation-us-laws-and-global-developments---britannica.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Crypto Regulation 2026: Global Law Changes - Blockchain Council</h3>
-          <p class="w3l-card-snippet">Crypto Regulation 2026: Global Law Changes&nbsp;&nbsp;Blockchain Council</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 19, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/crypto-regulation-2026-global-law-changes---blockchain-council.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Crypto Regulation 2026: Global Law Changes - Blockchain Council</h3>
+          <p class="card-snippet">Crypto Regulation 2026: Global Law Changes&nbsp;&nbsp;Blockchain Council</p>
+          <div class="card-footer">
+            <span class="card-meta">June 19, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/crypto-regulation-2026-global-law-changes---blockchain-council.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Polish president vetoes crypto regulation for the third time - Reuters</h3>
-          <p class="w3l-card-snippet">Polish president vetoes crypto regulation for the third time&nbsp;&nbsp;Reuters</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 11, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/polish-president-vetoes-crypto-regulation-for-the-third-time---reuters.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Polish president vetoes crypto regulation for the third time - Reuters</h3>
+          <p class="card-snippet">Polish president vetoes crypto regulation for the third time&nbsp;&nbsp;Reuters</p>
+          <div class="card-footer">
+            <span class="card-meta">June 11, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/polish-president-vetoes-crypto-regulation-for-the-third-time---reuters.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Law Enforcement, Catholic Groups Raise New Concerns Over CLARITY Act Ahead of July Hearing - CCN.com</h3>
-          <p class="w3l-card-snippet">Law Enforcement, Catholic Groups Raise New Concerns Over CLARITY Act Ahead of July Hearing&nbsp;&nbsp;CCN.com</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 25, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/law-enforcement-catholic-groups-raise-new-concerns-over-clarity-act-ahead-of-jul.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Law Enforcement, Catholic Groups Raise New Concerns Over CLARITY Act Ahead of July Hearing - CCN.com</h3>
+          <p class="card-snippet">Law Enforcement, Catholic Groups Raise New Concerns Over CLARITY Act Ahead of July Hearing&nbsp;&nbsp;CCN.com</p>
+          <div class="card-footer">
+            <span class="card-meta">June 25, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/law-enforcement-catholic-groups-raise-new-concerns-over-clarity-act-ahead-of-jul.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">The CLARITY Act has four weeks to pass the Senate or crypto regulation waits until 2030 - Startup Fortune</h3>
-          <p class="w3l-card-snippet">The CLARITY Act has four weeks to pass the Senate or crypto regulation waits until 2030&nbsp;&nbsp;Startup Fortune</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 25, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/the-clarity-act-has-four-weeks-to-pass-the-senate-or-crypto-regulation-waits-unt.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">The CLARITY Act has four weeks to pass the Senate or crypto regulation waits until 2030 - Startup Fortune</h3>
+          <p class="card-snippet">The CLARITY Act has four weeks to pass the Senate or crypto regulation waits until 2030&nbsp;&nbsp;Startup Fortune</p>
+          <div class="card-footer">
+            <span class="card-meta">June 25, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/the-clarity-act-has-four-weeks-to-pass-the-senate-or-crypto-regulation-waits-unt.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">In Clarity Act's final weeks, its path through U.S. Senate not getting much clearer - CoinDesk</h3>
-          <p class="w3l-card-snippet">In Clarity Act's final weeks, its path through U.S. Senate not getting much clearer&nbsp;&nbsp;CoinDesk</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 23, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/in-clarity-acts-final-weeks-its-path-through-us-senate-not-getting-much-clearer-.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">In Clarity Act's final weeks, its path through U.S. Senate not getting much clearer - CoinDesk</h3>
+          <p class="card-snippet">In Clarity Act's final weeks, its path through U.S. Senate not getting much clearer&nbsp;&nbsp;CoinDesk</p>
+          <div class="card-footer">
+            <span class="card-meta">June 23, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/in-clarity-acts-final-weeks-its-path-through-us-senate-not-getting-much-clearer-.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Japan Moves to Regulate Crypto Like Stocks in Market Growth Push - Bloomberg.com</h3>
-          <p class="w3l-card-snippet">Japan Moves to Regulate Crypto Like Stocks in Market Growth Push&nbsp;&nbsp;Bloomberg.com</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 10, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/japan-moves-to-regulate-crypto-like-stocks-in-market-growth-push---bloombergcom.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Japan Moves to Regulate Crypto Like Stocks in Market Growth Push - Bloomberg.com</h3>
+          <p class="card-snippet">Japan Moves to Regulate Crypto Like Stocks in Market Growth Push&nbsp;&nbsp;Bloomberg.com</p>
+          <div class="card-footer">
+            <span class="card-meta">June 10, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/japan-moves-to-regulate-crypto-like-stocks-in-market-growth-push---bloombergcom.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Russia Delays Implementation of Cryptocurrency Regulation Law as Duma Review Stalls - CryptoRank</h3>
-          <p class="w3l-card-snippet">Russia Delays Implementation of Cryptocurrency Regulation Law as Duma Review Stalls&nbsp;&nbsp;CryptoRank</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 25, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/russia-delays-implementation-of-cryptocurrency-regulation-law-as-duma-review-sta.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Russia Delays Implementation of Cryptocurrency Regulation Law as Duma Review Stalls - CryptoRank</h3>
+          <p class="card-snippet">Russia Delays Implementation of Cryptocurrency Regulation Law as Duma Review Stalls&nbsp;&nbsp;CryptoRank</p>
+          <div class="card-footer">
+            <span class="card-meta">June 25, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/russia-delays-implementation-of-cryptocurrency-regulation-law-as-duma-review-sta.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">What is MiCA? Europe’s crypto regulation explained - Cryptonews.net</h3>
-          <p class="w3l-card-snippet">What is MiCA? Europe’s crypto regulation explained&nbsp;&nbsp;Cryptonews.net</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 25, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/what-is-mica-europes-crypto-regulation-explained---cryptonewsnet.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">What is MiCA? Europe’s crypto regulation explained - Cryptonews.net</h3>
+          <p class="card-snippet">What is MiCA? Europe’s crypto regulation explained&nbsp;&nbsp;Cryptonews.net</p>
+          <div class="card-footer">
+            <span class="card-meta">June 25, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/what-is-mica-europes-crypto-regulation-explained---cryptonewsnet.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">May global crypto regulatory 10-minute round-up. | Inside FinTech | Global law firm - Norton Rose Fulbright</h3>
-          <p class="w3l-card-snippet">May global crypto regulatory 10-minute round-up. | Inside FinTech | Global law firm&nbsp;&nbsp;Norton Rose Fulbright</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 23, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/may-global-crypto-regulatory-10-minute-round-up-inside-fintech-global-law-firm--.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">May global crypto regulatory 10-minute round-up. | Inside FinTech | Global law firm - Norton Rose Fulbright</h3>
+          <p class="card-snippet">May global crypto regulatory 10-minute round-up. | Inside FinTech | Global law firm&nbsp;&nbsp;Norton Rose Fulbright</p>
+          <div class="card-footer">
+            <span class="card-meta">June 23, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/may-global-crypto-regulatory-10-minute-round-up-inside-fintech-global-law-firm--.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">The CLARITY Act's Biggest Obstacle Isn't Crypto Regulation — It's Trump's Crypto Ties - Yahoo Finance</h3>
-          <p class="w3l-card-snippet">The CLARITY Act's Biggest Obstacle Isn't Crypto Regulation — It's Trump's Crypto Ties&nbsp;&nbsp;Yahoo Finance</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 21, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/the-clarity-acts-biggest-obstacle-isnt-crypto-regulation-its-trumps-crypto-ties-.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">The CLARITY Act's Biggest Obstacle Isn't Crypto Regulation — It's Trump's Crypto Ties - Yahoo Finance</h3>
+          <p class="card-snippet">The CLARITY Act's Biggest Obstacle Isn't Crypto Regulation — It's Trump's Crypto Ties&nbsp;&nbsp;Yahoo Finance</p>
+          <div class="card-footer">
+            <span class="card-meta">June 21, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/the-clarity-acts-biggest-obstacle-isnt-crypto-regulation-its-trumps-crypto-ties-.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">What Is the GENIUS Act? A Guide to U.S. Stablecoin Law - The Block</h3>
-          <p class="w3l-card-snippet">What Is the GENIUS Act? A Guide to U.S. Stablecoin Law&nbsp;&nbsp;The Block</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 26, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/what-is-the-genius-act-a-guide-to-us-stablecoin-law---the-block.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">What Is the GENIUS Act? A Guide to U.S. Stablecoin Law - The Block</h3>
+          <p class="card-snippet">What Is the GENIUS Act? A Guide to U.S. Stablecoin Law&nbsp;&nbsp;The Block</p>
+          <div class="card-footer">
+            <span class="card-meta">June 26, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/what-is-the-genius-act-a-guide-to-us-stablecoin-law---the-block.html">Read →</a>
           </div>
         </div>
-        <div class="w3l-card" data-cat="crypto">
-          <div class="w3l-card-badge">⚖️ CRYPTO</div>
-          <h3 class="w3l-card-title">Law enforcement, banks warn of money laundering gaps in major US crypto bill - International Consortium of Investigative Journalists - ICIJ</h3>
-          <p class="w3l-card-snippet">Law enforcement, banks warn of money laundering gaps in major US crypto bill&nbsp;&nbsp;International Consortium of Investigative Journalists - ICIJ</p>
-          <div class="w3l-card-footer">
-            <span class="w3l-card-date">June 24, 2026 &nbsp;·&nbsp; <em>📰 News Brief</em></span>
-            <a class="w3l-card-read" href="/blog/law-enforcement-banks-warn-of-money-laundering-gaps-in-major-us-crypto-bill---in.html">Read →</a>
+        <div class="card" data-cat="crypto">
+          <div class="card-badge">⚖️ CRYPTO</div>
+          <h3 class="card-title">Law enforcement, banks warn of money laundering gaps in major US crypto bill - International Consortium of Investigative Journalists - ICIJ</h3>
+          <p class="card-snippet">Law enforcement, banks warn of money laundering gaps in major US crypto bill&nbsp;&nbsp;International Consortium of Investigative Journalists - ICIJ</p>
+          <div class="card-footer">
+            <span class="card-meta">June 24, 2026 · <em>📰 News Brief</em></span>
+            <a class="card-read" href="/blog/law-enforcement-banks-warn-of-money-laundering-gaps-in-major-us-crypto-bill---in.html">Read →</a>
           </div>
         </div>
   </div>
@@ -296,16 +314,18 @@
   </footer>
 
   <script>
+    /* Pure static filter — no fetch, no external calls */
     (function() {
-      var btns  = document.querySelectorAll('.w3l-filter-btn');
-      var cards = document.querySelectorAll('.w3l-card');
+      var btns  = document.querySelectorAll('.fbtn');
+      var cards = document.querySelectorAll('.card');
       btns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           btns.forEach(function(b) { b.classList.remove('active'); });
           btn.classList.add('active');
           var f = btn.getAttribute('data-filter');
           cards.forEach(function(card) {
-            card.classList.toggle('hidden', f !== 'all' && card.getAttribute('data-cat') !== f);
+            card.classList.toggle('hidden',
+              f !== 'all' && card.getAttribute('data-cat') !== f);
           });
         });
       });

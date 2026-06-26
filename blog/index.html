@@ -129,7 +129,7 @@
     });
 
   } catch(e) {
-    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray)">No articles yet. Check back soon.</div>';
+    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray)">Error: ' + e.message + '</div>';
   }
 })();
 </script>

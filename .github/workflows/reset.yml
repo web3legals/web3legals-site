@@ -1,0 +1,47 @@
+name: Reset Blog System
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete old blog files
+        run: |
+          # Delete blog folder
+          rm -rf blog/
+          # Delete old blog html
+          rm -f blog.html
+          # Delete old data files
+          rm -f .all_articles.json
+          rm -f .seen_articles.json
+          rm -f articles.json
+          rm -f linkedin-drafts.json
+          rm -f _redirects
+          # Delete wrong github folder
+          rm -rf github/
+          # Delete old workflows except this one
+          rm -f .github/workflows/build-seo.yml
+          rm -f .github/workflows/cleanup.yml
+          rm -f .github/workflows/delete-old-articles.yml
+          rm -f .github/workflows/fix-css-paths.yml
+          rm -f .github/workflows/crypto_radar.yml
+          # Delete old script
+          rm -f .github/scripts/crypto_radar.py
+          rm -f .github/scripts/build_blog.py
+          rm -f .github/scripts/published_urls.json
+          echo "✅ Cleanup complete"
+
+      - name: Commit and push
+        run: |
+          git config user.name "actions-user"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Reset: Clean slate for fresh blog system"
+          git push

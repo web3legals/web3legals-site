@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Web3Legals Crypto Legal Radar — Final Clean Version
+Web3Legals Crypto Legal Radar
 - Fetches from Google News RSS (free, no API key)
-- Saves articles to blog/ folder at repo root
-- Updates blog/index.html automatically
-- Uses absolute CSS paths (/css/style.css)
+- Saves articles to blog/ folder
+- Updates articles.json for the blog listing page
 """
 
 import re
@@ -15,15 +14,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-REPO_ROOT  = Path(__file__).resolve().parent.parent.parent
-BLOG_DIR   = REPO_ROOT / "blog"
-SEEN_FILE  = REPO_ROOT / ".seen_articles.json"
-BLOG_INDEX = REPO_ROOT / "blog" / "index.html"
+REPO_ROOT   = Path(__file__).resolve().parent.parent.parent
+BLOG_DIR    = REPO_ROOT / "blog"
+SEEN_FILE   = REPO_ROOT / ".seen_articles.json"
+ARTICLES_JSON = REPO_ROOT / "articles.json"
 
-print(f"REPO_ROOT:  {REPO_ROOT}")
-print(f"BLOG_DIR:   {BLOG_DIR}")
-print(f"BLOG_INDEX: {BLOG_INDEX}")
-print(f"BLOG_INDEX exists: {BLOG_INDEX.exists()}")
+print(f"REPO_ROOT:     {REPO_ROOT}")
+print(f"BLOG_DIR:      {BLOG_DIR}")
+print(f"ARTICLES_JSON: {ARTICLES_JSON}")
 
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=crypto+regulation+law&hl=en-US&gl=US&ceid=US:en",
@@ -59,6 +57,17 @@ def load_seen():
 
 def save_seen(seen):
     SEEN_FILE.write_text(json.dumps(list(seen), indent=2))
+
+def load_articles():
+    if ARTICLES_JSON.exists():
+        try:
+            return json.loads(ARTICLES_JSON.read_text())
+        except Exception:
+            return []
+    return []
+
+def save_articles(articles):
+    ARTICLES_JSON.write_text(json.dumps(articles, indent=2, ensure_ascii=False))
 
 def slugify(text):
     text = text.lower()
@@ -235,66 +244,27 @@ def build_article_html(article, slug):
 </body>
 </html>"""
 
-def build_card_html(article, slug):
-    cat = article["category"]
-    badge_cls, badge_lbl = category_badge(cat)
-    emoji = category_emoji(cat)
-    snippet = article["description"][:180] + ("..." if len(article["description"]) > 180 else "")
-    return f"""      <div class="blog-card fade-up" data-category="{cat}">
-        <div class="blog-card-image">{emoji}</div>
-        <div class="blog-card-body">
-          <div class="blog-card-meta"><span class="badge {badge_cls}">{badge_lbl}</span><span>3 min read</span></div>
-          <h3><a href="/blog/{slug}">{article['title']}</a></h3>
-          <p>{snippet}</p>
-          <a href="/blog/{slug}" class="blog-read-more">Read article <span>→</span></a>
-        </div>
-      </div>"""
-
-def update_blog_index(cards_html):
-    if not BLOG_INDEX.exists():
-        print(f"  ⚠  blog/index.html not found at {BLOG_INDEX}")
-        return
-    content = BLOG_INDEX.read_text(encoding="utf-8")
-    start_marker = '<div class="grid-3" id="cmsArticles"'
-    start = content.find(start_marker)
-    if start == -1:
-        print("  ⚠  #cmsArticles not found in blog/index.html")
-        return
-    depth, i = 0, start
-    while i < len(content):
-        if content[i:i+4] == "<div":
-            depth += 1
-        elif content[i:i+6] == "</div>":
-            depth -= 1
-            if depth == 0:
-                div_end = i + 6
-                break
-        i += 1
-    new_block = f'<div class="grid-3" id="cmsArticles" style="margin-bottom:40px">\n{cards_html}\n    </div>'
-    content = content[:start] + new_block + content[div_end:]
-    BLOG_INDEX.write_text(content, encoding="utf-8")
-    print(f"  ✅ blog/index.html updated with {cards_html.count('blog-card')} new cards")
-
 def main():
     print("🌐 Web3Legals — Crypto Legal Radar Starting...")
 
     if BLOG_DIR.exists() and not BLOG_DIR.is_dir():
         BLOG_DIR.unlink()
-        print("  🗑  Removed stale 'blog' file")
     BLOG_DIR.mkdir(exist_ok=True)
 
     seen = load_seen()
-    new_articles = []
+    existing_articles = load_articles()
+    existing_slugs = {a["slug"] for a in existing_articles}
 
+    new_feed_articles = []
     for feed_url in RSS_FEEDS:
         print(f"  📡 {feed_url[:70]}")
         for a in fetch_feed(feed_url):
             aid = article_id(a["url"])
             if aid not in seen:
-                new_articles.append((aid, a))
+                new_feed_articles.append((aid, a))
 
     seen_titles, deduped = set(), []
-    for aid, a in new_articles:
+    for aid, a in new_feed_articles:
         key = slugify(a["title"])[:40]
         if key not in seen_titles:
             seen_titles.add(key)
@@ -305,26 +275,34 @@ def main():
         print("✅ Nothing new today.")
         return
 
-    published_cards = []
+    new_article_records = []
     for aid, article in deduped[:12]:
         slug = slugify(article["title"])
         filepath = BLOG_DIR / f"{slug}.html"
-        if filepath.exists():
+        if filepath.exists() or slug in existing_slugs:
             seen.add(aid)
             continue
         try:
             filepath.write_text(build_article_html(article, slug), encoding="utf-8")
             seen.add(aid)
-            published_cards.append(build_card_html(article, slug))
+            new_article_records.append({
+                "slug":        slug,
+                "title":       article["title"],
+                "description": article["description"][:200],
+                "category":    article["category"],
+                "date":        datetime.now().strftime("%Y-%m-%d"),
+            })
             print(f"  ✅ {article['title'][:65]}")
         except Exception as e:
             print(f"  ❌ {article['title'][:40]} — {e}")
 
-    if published_cards:
-        update_blog_index("\n".join(published_cards))
+    if new_article_records:
+        all_articles = new_article_records + existing_articles
+        save_articles(all_articles)
+        print(f"  ✅ articles.json updated with {len(new_article_records)} new articles ({len(all_articles)} total)")
 
     save_seen(seen)
-    print(f"\n🎉 Published {len(published_cards)} articles.")
+    print(f"\n🎉 Published {len(new_article_records)} articles.")
 
 if __name__ == "__main__":
     main()

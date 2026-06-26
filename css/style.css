@@ -129,46 +129,111 @@ p  { color: var(--text2); line-height: 1.8; }
 .logo-tag { font-size: .62rem; color: var(--text3); font-weight: 400; margin-top: 1px; display: block; }
 
 .nav-links {
-  display: flex; align-items: center; gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .nav-links a {
-  padding: 8px 14px; border-radius: 6px; font-size: .875rem;
-  font-weight: 500; color: var(--text2);
+  display: block;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text2);
+  text-decoration: none;
+  white-space: nowrap;
   transition: color var(--transition), background var(--transition);
 }
-.nav-links a:hover, .nav-links a.active { color: var(--heading); background: rgba(255,255,255,.05); }
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--heading);
+  background: rgba(255,255,255,.06);
+}
 
 .nav-cta {
-  padding: 9px 20px; border-radius: 6px;
+  display: inline-block;
+  padding: 9px 20px;
+  border-radius: 6px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff; font-size: .85rem; font-weight: 600;
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
   transition: opacity var(--transition);
 }
 .nav-cta:hover { opacity: .85; }
 
+/* Hamburger button — hidden on desktop */
 .nav-toggle {
-  display: none; flex-direction: column; gap: 5px;
-  background: none; border: none; cursor: pointer; padding: 4px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 .nav-toggle span {
-  display: block; width: 22px; height: 2px;
-  background: var(--text2); border-radius: 2px;
-  transition: all var(--transition);
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text2);
+  border-radius: 2px;
+  transition: all .25s ease;
 }
+/* Animated X when open */
+.nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
+/* Mobile drawer */
 .mobile-nav {
-  display: none; position: fixed; top: var(--nav-h); left: 0; right: 0;
-  background: var(--bg2); border-bottom: 1px solid var(--border);
-  padding: 20px 24px; z-index: 99;
+  display: none;
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  z-index: 98;
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 4px;
 }
-.mobile-nav.open { display: block; }
+.mobile-nav.open {
+  display: flex;
+}
 .mobile-nav a {
-  display: block; padding: 12px 0; font-size: .95rem;
-  color: var(--text2); border-bottom: 1px solid var(--border);
-  transition: color var(--transition);
+  display: block;
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text2);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color var(--transition), background var(--transition);
 }
-.mobile-nav a:last-child { border: none; }
-.mobile-nav a:hover { color: var(--accent); }
+.mobile-nav a:hover { color: var(--heading); background: rgba(255,255,255,.05); }
+.mobile-nav a.mobile-cta {
+  margin-top: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+}
+.mobile-nav a.mobile-cta:hover { opacity: .85; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
 
 .page-offset { padding-top: var(--nav-h); }
 
@@ -311,13 +376,17 @@ p  { color: var(--text2); line-height: 1.8; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
 }
+@media (max-width: 768px) {
+  /* Hide desktop nav, show hamburger */
+  .nav-links { display: none !important; }
+  .nav-cta   { display: none !important; }
+  .nav-toggle { display: flex; }
+}
 @media (max-width: 640px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   .form-row { grid-template-columns: 1fr; }
   .cta-banner { padding: 40px 24px; }
-  .nav-links, .nav-cta { display: none; }
-  .nav-toggle { display: flex; }
   h1 { font-size: clamp(1.8rem, 8vw, 2.6rem); }
   .stats-row { gap: 28px; }
 }

@@ -3,7 +3,7 @@
 Web3Legals Crypto Legal Radar
 - Fetches from Google News RSS (free, no API key)
 - Saves articles to blog/ folder
-- Updates articles.json for the blog listing page
+- Rewrites blog/index.html completely with static article cards
 """
 
 import re
@@ -14,14 +14,15 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-REPO_ROOT   = Path(__file__).resolve().parent.parent.parent
-BLOG_DIR    = REPO_ROOT / "blog"
-SEEN_FILE   = REPO_ROOT / ".seen_articles.json"
-ARTICLES_JSON = REPO_ROOT / "articles.json"
+REPO_ROOT  = Path(__file__).resolve().parent.parent.parent
+BLOG_DIR   = REPO_ROOT / "blog"
+SEEN_FILE  = REPO_ROOT / ".seen_articles.json"
+BLOG_INDEX = REPO_ROOT / "blog" / "index.html"
+ALL_ARTICLES_FILE = REPO_ROOT / ".all_articles.json"
 
-print(f"REPO_ROOT:     {REPO_ROOT}")
-print(f"BLOG_DIR:      {BLOG_DIR}")
-print(f"ARTICLES_JSON: {ARTICLES_JSON}")
+print(f"REPO_ROOT:  {REPO_ROOT}")
+print(f"BLOG_DIR:   {BLOG_DIR}")
+print(f"BLOG_INDEX: {BLOG_INDEX}")
 
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=crypto+regulation+law&hl=en-US&gl=US&ceid=US:en",
@@ -58,16 +59,16 @@ def load_seen():
 def save_seen(seen):
     SEEN_FILE.write_text(json.dumps(list(seen), indent=2))
 
-def load_articles():
-    if ARTICLES_JSON.exists():
+def load_all_articles():
+    if ALL_ARTICLES_FILE.exists():
         try:
-            return json.loads(ARTICLES_JSON.read_text())
+            return json.loads(ALL_ARTICLES_FILE.read_text())
         except Exception:
             return []
     return []
 
-def save_articles(articles):
-    ARTICLES_JSON.write_text(json.dumps(articles, indent=2, ensure_ascii=False))
+def save_all_articles(articles):
+    ALL_ARTICLES_FILE.write_text(json.dumps(articles, indent=2, ensure_ascii=False))
 
 def slugify(text):
     text = text.lower()
@@ -102,6 +103,9 @@ def category_badge(cat):
 def category_emoji(cat):
     return {"token": "🪙", "dao": "🏛", "compliance": "🛡", "defi": "🔗", "startup": "🚀"}.get(cat, "📋")
 
+def clean(text):
+    return text.replace("&nbsp;", " ").replace("\u00a0", " ").strip()
+
 def fetch_feed(url):
     articles = []
     try:
@@ -115,9 +119,9 @@ def fetch_feed(url):
         channel = root.find("channel")
         items = channel.findall("item") if channel else root.findall(".//item")
         for item in items[:20]:
-            title = (item.findtext("title") or "").strip()
-            link  = (item.findtext("link")  or "").strip()
-            desc  = re.sub(r"<[^>]+>", "", item.findtext("description") or "").strip()
+            title = clean(item.findtext("title") or "")
+            link  = (item.findtext("link") or "").strip()
+            desc  = clean(re.sub(r"<[^>]+>", "", item.findtext("description") or ""))
             if title and link and is_relevant(title, desc):
                 articles.append({
                     "title":       title,
@@ -180,7 +184,6 @@ def build_article_html(article, slug):
   <a href="/about.html">About</a><a href="/blog/">Blog</a><a href="/contact.html">Contact</a>
   <a href="/contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
 </div>
-
 <section class="page-hero">
   <div class="page-hero-bg"></div>
   <div class="container" style="position:relative;z-index:2">
@@ -193,7 +196,6 @@ def build_article_html(article, slug):
     </div>
   </div>
 </section>
-
 <section class="section" style="padding-top:40px">
   <div class="container">
     <div style="max-width:760px;margin:0 auto">
@@ -220,23 +222,109 @@ def build_article_html(article, slug):
     </div>
   </div>
 </section>
-
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="/index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
-        <p>Legal clarity for the decentralized world.</p>
-        <div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div>
-      </div>
+      <div class="footer-brand"><a href="/index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a><p>Legal clarity for the decentralized world.</p><div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div></div>
       <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="/services.html">Token Advisory</a></li><li><a href="/services.html">DAO Wrappers</a></li><li><a href="/services.html">KYC/AML</a></li></ul></div>
       <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="/about.html">About Rahul</a></li><li><a href="/blog/">Blog</a></li><li><a href="/contact.html">Contact</a></li></ul></div>
       <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="/contact.html">Book a Call</a></li></ul></div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 Web3Legals. Founded by <a href="/about.html">Rahul Pareek</a>.</span>
-      <span>Disclaimer: Informational only — not legal advice.</span>
+    <div class="footer-bottom"><span>© 2026 Web3Legals. Founded by <a href="/about.html">Rahul Pareek</a>.</span><span>Disclaimer: Informational only — not legal advice.</span></div>
+  </div>
+</footer>
+<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+<script src="/js/main.js"></script>
+</body>
+</html>"""
+
+def build_blog_index(all_articles):
+    """Build complete static blog/index.html with all article cards."""
+    cards = ""
+    for a in all_articles:
+        cat = a["category"]
+        badge_cls, badge_lbl = category_badge(cat)
+        emoji = category_emoji(cat)
+        snippet = a["description"][:180] + ("..." if len(a["description"]) > 180 else "")
+        title = a["title"]
+        slug = a["slug"]
+        cards += f"""      <div class="blog-card fade-up" data-category="{cat}">
+        <div class="blog-card-image">{emoji}</div>
+        <div class="blog-card-body">
+          <div class="blog-card-meta"><span class="badge {badge_cls}">{badge_lbl}</span><span>3 min read</span></div>
+          <h3><a href="/blog/{slug}">{title}</a></h3>
+          <p>{snippet}</p>
+          <a href="/blog/{slug}" class="blog-read-more">Read article <span>→</span></a>
+        </div>
+      </div>\n"""
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Web3Legals | Crypto & Blockchain Law Insights</title>
+<meta name="description" content="Legal insights for Web3 founders — token law, DAO governance, DeFi compliance, KYC/AML, and crypto regulation. By Rahul Pareek, Web3Legals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="/index.html" class="nav-logo"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li><li><a href="/services.html">Services</a></li>
+      <li><a href="/about.html">About</a></li><li><a href="/blog/" class="active">Blog</a></li><li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-cta"><a href="/contact.html" class="btn btn-gold">Book a Call</a></div>
+    <div class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/index.html">Home</a><a href="/services.html">Services</a><a href="/about.html">About</a>
+  <a href="/blog/">Blog</a><a href="/contact.html">Contact</a>
+  <a href="/contact.html" class="btn btn-gold" style="margin-top:16px">Book a Free Call</a>
+</div>
+<section class="page-hero">
+  <div class="page-hero-bg"></div>
+  <div class="container" style="position:relative;z-index:2">
+    <div class="eyebrow">Knowledge Hub</div>
+    <h1>Web3 Legal Insights</h1>
+    <p>Practical legal intelligence for blockchain founders, DAO contributors, and crypto builders.</p>
+  </div>
+</section>
+<section class="section" style="padding-top:40px">
+  <div class="container">
+    <div class="blog-filter">
+      <button class="filter-btn active" data-filter="all">All Articles</button>
+      <button class="filter-btn" data-filter="token">Token Law</button>
+      <button class="filter-btn" data-filter="dao">DAO & Governance</button>
+      <button class="filter-btn" data-filter="compliance">Compliance</button>
+      <button class="filter-btn" data-filter="startup">Startup Law</button>
+      <button class="filter-btn" data-filter="defi">DeFi & NFT</button>
     </div>
+    <div class="grid-3" id="cmsArticles" style="margin-bottom:40px">
+{cards}    </div>
+    <div class="cta-section fade-up" style="margin-top:80px">
+      <div class="eyebrow">Stay Informed</div>
+      <h2>Web3 legal updates, monthly</h2>
+      <p>Regulatory changes, case law updates, and practical legal guides — delivered once a month. No spam.</p>
+      <div style="display:flex;gap:12px;justify-content:center;max-width:480px;margin:0 auto;flex-wrap:wrap">
+        <input type="email" placeholder="your@email.com" style="flex:1;padding:14px 18px;border-radius:var(--radius);background:rgba(255,255,255,0.07);border:1px solid var(--border2);color:var(--white);font-size:0.95rem;font-family:inherit;outline:none;min-width:200px">
+        <button class="btn btn-gold">Subscribe →</button>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand"><a href="/index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">W3</div><span>Web3<span class="text-gold">Legals</span></span></a><p>Legal clarity for the decentralized world.</p><div class="footer-social"><a href="https://linkedin.com/in/rahulpareek2302" class="social-link">in</a><a href="#" class="social-link">𝕏</a></div></div>
+      <div class="footer-col"><h4>Services</h4><ul class="footer-links"><li><a href="/services.html">Token Advisory</a></li><li><a href="/services.html">DAO Wrappers</a></li><li><a href="/services.html">KYC/AML</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul class="footer-links"><li><a href="/about.html">About Rahul</a></li><li><a href="/blog/">Blog</a></li><li><a href="/contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Contact</h4><ul class="footer-links"><li><a href="mailto:rahul@web3legals.com">rahul@web3legals.com</a></li><li><a href="/contact.html">Book a Call</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Web3Legals. Founded by <a href="/about.html">Rahul Pareek</a>.</span><span>Disclaimer: Informational only — not legal advice.</span></div>
   </div>
 </footer>
 <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
@@ -252,8 +340,8 @@ def main():
     BLOG_DIR.mkdir(exist_ok=True)
 
     seen = load_seen()
-    existing_articles = load_articles()
-    existing_slugs = {a["slug"] for a in existing_articles}
+    all_articles = load_all_articles()
+    existing_slugs = {a["slug"] for a in all_articles}
 
     new_feed_articles = []
     for feed_url in RSS_FEEDS:
@@ -271,11 +359,8 @@ def main():
             deduped.append((aid, a))
 
     print(f"\n📋 {len(deduped)} new articles found")
-    if not deduped:
-        print("✅ Nothing new today.")
-        return
 
-    new_article_records = []
+    new_records = []
     for aid, article in deduped[:12]:
         slug = slugify(article["title"])
         filepath = BLOG_DIR / f"{slug}.html"
@@ -285,7 +370,7 @@ def main():
         try:
             filepath.write_text(build_article_html(article, slug), encoding="utf-8")
             seen.add(aid)
-            new_article_records.append({
+            new_records.append({
                 "slug":        slug,
                 "title":       article["title"],
                 "description": article["description"][:200],
@@ -296,13 +381,15 @@ def main():
         except Exception as e:
             print(f"  ❌ {article['title'][:40]} — {e}")
 
-    if new_article_records:
-        all_articles = new_article_records + existing_articles
-        save_articles(all_articles)
-        print(f"  ✅ articles.json updated with {len(new_article_records)} new articles ({len(all_articles)} total)")
+    if new_records or not BLOG_INDEX.exists():
+        all_articles = new_records + all_articles
+        save_all_articles(all_articles)
+        # Write completely static blog/index.html
+        BLOG_INDEX.write_text(build_blog_index(all_articles), encoding="utf-8")
+        print(f"  ✅ blog/index.html rebuilt with {len(all_articles)} articles")
 
     save_seen(seen)
-    print(f"\n🎉 Published {len(new_article_records)} articles.")
+    print(f"\n🎉 Published {len(new_records)} new articles.")
 
 if __name__ == "__main__":
     main()
